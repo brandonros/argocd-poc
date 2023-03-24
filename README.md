@@ -29,20 +29,20 @@ EXTERNAL_IP=$(terraform show -json terraform.tfstate | jq -r '.values.root_modul
 # wait for SSH to be available
 while ! nc -z $EXTERNAL_IP 22; do sleep 1; done
 # configure user
-ssh root@$EXTERNAL_IP 'bash -s' < ./scripts/000-configure-user.sh
+scp ./scripts/000-configure-user.sh root@$EXTERNAL_IP:/tmp && ssh -t root@$EXTERNAL_IP 'bash /tmp/000-configure-user.sh'
 # update droplet
-ssh root@$EXTERNAL_IP 'bash -s' < ./scripts/001-update-droplet.sh
+scp ./scripts/001-update-droplet.sh root@$EXTERNAL_IP:/tmp && ssh -t root@$EXTERNAL_IP 'bash /tmp/001-update-droplet.sh'
 # poweroff, sleep, powercycle
 ssh root@$EXTERNAL_IP 'bash -c "poweroff"'
 sleep 15 && ./scripts/002-power-cycle-droplet.sh
 # wait for SSH to be available
 while ! nc -z $EXTERNAL_IP 22; do sleep 1; done
 # install k3s
-scp ./scripts/003-install-k3s.sh brandon@$EXTERNAL_IP:/tmp && ssh -t brandon@$EXTERNAL_IP 'bash -c "chmod +x /tmp/003-install-k3s.sh && /tmp/003-install-k3s.sh"'
+scp ./scripts/003-install-k3s.sh brandon@$EXTERNAL_IP:/tmp && ssh -t brandon@$EXTERNAL_IP 'bash /tmp/003-install-k3s.sh'
 # deploy argocd
-scp ./scripts/004-deploy-argocd.sh brandon@$EXTERNAL_IP:/tmp && ssh -t brandon@$EXTERNAL_IP 'bash -c "chmod +x /tmp/004-deploy-argocd.sh && /tmp/004-deploy-argocd.sh"'
+scp ./scripts/004-deploy-argocd.sh brandon@$EXTERNAL_IP:/tmp && ssh -t brandon@$EXTERNAL_IP 'bash /tmp/004-deploy-argocd.sh'
 # deploy elk stack
-scp ./scripts/005-deploy-elk-stack.sh brandon@$EXTERNAL_IP:/tmp && ssh -t brandon@$EXTERNAL_IP 'bash -c "chmod +x /tmp/005-deploy-elk-stack.sh && /tmp/005-deploy-elk-stack.sh"'
+scp ./scripts/005-deploy-elk-stack.sh brandon@$EXTERNAL_IP:/tmp && ssh -t brandon@$EXTERNAL_IP 'bash /tmp/005-deploy-elk-stack.sh'
 ```
 
 ## Using ArgoCD UI
