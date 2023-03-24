@@ -57,3 +57,9 @@ ssh brandon@$EXTERNAL_IP 'bash -c "KUBECONFIG=~/.kube/config kubectl --namespace
 ssh -L 5601:127.0.0.1:5601 brandon@$EXTERNAL_IP 'bash -c "KUBECONFIG=~/.kube/config kubectl port-forward svc/kibana-kibana -n elk 5601:5601"'
 # go to kibana in browser at https://localhost:5601
 ```
+
+## Cleanup
+
+```shell
+terraform destroy -var "digitalocean_token=$DIGITALOCEAN_TOKEN"
+```
