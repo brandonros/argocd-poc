@@ -39,6 +39,8 @@ sleep 15 && ./scripts/002-power-cycle-droplet.sh
 while ! nc -z $EXTERNAL_IP 22; do sleep 1; done
 # install k3s
 scp ./scripts/003-install-k3s.sh brandon@$EXTERNAL_IP:/tmp && ssh -t brandon@$EXTERNAL_IP 'bash /tmp/003-install-k3s.sh'
+# install dependencies
+scp ./scripts/004-install-dependencies.sh brandon@$EXTERNAL_IP:/tmp && ssh -t brandon@$EXTERNAL_IP 'bash /tmp/004-install-dependencies.sh'
 # deploy argocd
 scp ./scripts/004-deploy-argocd.sh brandon@$EXTERNAL_IP:/tmp && ssh -t brandon@$EXTERNAL_IP 'bash /tmp/004-deploy-argocd.sh'
 # deploy elk stack
