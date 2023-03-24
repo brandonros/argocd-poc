@@ -9,8 +9,8 @@ PORT=5000
 REGISTRY_URL="$DOCKER_REGISTRY_CLUSTER_IP:$PORT"
 # variables
 IMAGE_TAG="my-image:0.0.1"
-# populate Dockerfile TODO: use a real one?
-echo -e 'FROM alpine \nRUN echo "created from standard input"' > Dockerfile 
+# get context
+git clone https://github.com/brandonros/argocd-poc.git
 # build json overrides
 OVERRIDES=$(
 cat <<EOF
@@ -48,8 +48,8 @@ cat <<EOF
 }
 EOF
 )
-# send Dockerfile to kubectlr run which will pull kaniko executor image
-tar -cf - Dockerfile | gzip -9 | kubectl run -n docker-registry \
+# tar context and send toi kubectl run which will pull kaniko executor image
+tar -cf - argocd-poc/test/ | gzip -9 | kubectl run -n docker-registry \
   kaniko \
   --rm \
   --stdin=true \
