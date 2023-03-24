@@ -1,13 +1,14 @@
 #!/bin/bash
 set -e
 export KUBECONFIG=~/.kube/config
-# install argocd
+# create namespace
 kubectl create namespace argocd
+# install argocd
 kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/v2.6.7/manifests/install.yaml
 # wait for it to roll out
 sleep 60 # TODO: do kubectl wait instead of sleep
 # install argocd cli
-wget "https://github.com/argoproj/argo-cd/releases/download/v2.6.7/argocd-linux-amd64"
+wget https://github.com/argoproj/argo-cd/releases/download/v2.6.7/argocd-linux-amd64
 chmod +x argocd-linux-amd64
 sudo mv argocd-linux-amd64 /usr/local/bin/argocd
 # install dependencies

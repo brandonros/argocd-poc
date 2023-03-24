@@ -10,32 +10,39 @@ PUBLIC_KEY=$(cat ~/.ssh/id_rsa.pub) # created with ssh-keygen
 curl -X POST \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $DIGITALOCEAN_TOKEN" \
-  -d "{\"name\":\"$NAME\",\"public_key\":\"$PUBLIC_KEY\"}" \
+  -d "{\"name\":\"$KEY_NAME\",\"public_key\":\"$PUBLIC_KEY\"}" \
   "https://api.digitalocean.com/v2/account/keys"
 ```
 
 ## Create droplet
 
 ```shell
-# init
-terraform init
-# apply
-terraform apply -var "digitalocean_token=$DIGITALOCEAN_TOKEN"
+# assumes terraform in $PATH
+terraform init && terraform apply -var "digitalocean_token=$DIGITALOCEAN_TOKEN"
 ```
 
 ## Provision
 
 ```shell
+# get IP
 EXTERNAL_IP=$(terraform show -json terraform.tfstate | jq -r '.values.root_module.resources[] | select(.address=="digitalocean_droplet.argocd-poc") | .values.ipv4_address')
-# TODO: wait for SSH to be available
+# wait for SSH to be available
+while ! nc -z $EXTERNAL_IP 22; do sleep 1; done
+# configure user
 ssh root@$EXTERNAL_IP 'bash -s' < ./scripts/000-configure-user.sh
+# update droplet
 ssh root@$EXTERNAL_IP 'bash -s' < ./scripts/001-update-droplet.sh
+# poweroff, sleep, powercycle
 ssh root@$EXTERNAL_IP 'bash -c "poweroff"'
-sleep 15 && ./scripts/002-power-cycle-droplet.sh && sleep 15
-# TODO: wait for SSH to be available
+sleep 15 && ./scripts/002-power-cycle-droplet.sh
+# wait for SSH to be available
+while ! nc -z $EXTERNAL_IP 22; do sleep 1; done
+# install k3s
 scp ./scripts/003-install-k3s.sh brandon@$EXTERNAL_IP:/tmp && ssh -t brandon@$EXTERNAL_IP 'bash -c "chmod +x /tmp/003-install-k3s.sh && /tmp/003-install-k3s.sh"'
-scp ./scripts/004-install-argocd.sh brandon@$EXTERNAL_IP:/tmp && ssh -t brandon@$EXTERNAL_IP 'bash -c "chmod +x /tmp/004-install-argocd.sh && /tmp/004-install-argocd.sh"'
-scp ./scripts/005-install-elk.sh brandon@$EXTERNAL_IP:/tmp && ssh -t brandon@$EXTERNAL_IP 'bash -c "chmod +x /tmp/005-install-elk.sh && /tmp/005-install-elk.sh"'
+# deploy argocd
+scp ./scripts/004-deploy-argocd.sh brandon@$EXTERNAL_IP:/tmp && ssh -t brandon@$EXTERNAL_IP 'bash -c "chmod +x /tmp/004-deploy-argocd.sh && /tmp/004-deploy-argocd.sh"'
+# deploy elk stack
+scp ./scripts/005-deploy-elk-stack.sh brandon@$EXTERNAL_IP:/tmp && ssh -t brandon@$EXTERNAL_IP 'bash -c "chmod +x /tmp/005-deploy-elk-stack.sh && /tmp/005-deploy-elk-stack.sh"'
 ```
 
 ## Using ArgoCD UI
@@ -56,6 +63,16 @@ ssh brandon@$EXTERNAL_IP 'bash -c "KUBECONFIG=~/.kube/config kubectl --namespace
 # tunnel
 ssh -L 5601:127.0.0.1:5601 brandon@$EXTERNAL_IP 'bash -c "KUBECONFIG=~/.kube/config kubectl port-forward svc/kibana-kibana -n elk 5601:5601"'
 # go to kibana in browser at https://localhost:5601
+```
+
+## Using Elasticsearch API
+
+```shell
+# get kibana password (username is elastic)
+ssh brandon@$EXTERNAL_IP 'bash -c "KUBECONFIG=~/.kube/config kubectl --namespace elk get secret elasticsearch-master-credentials -o json | jq -r '.data.password' | base64 -d"'
+# tunnel
+ssh -L 9200:127.0.0.1:9200 brandon@$EXTERNAL_IP 'bash -c "KUBECONFIG=~/.kube/config kubectl port-forward svc/kibana-kibana -n elk 9200:9200"'
+# use API at http://localhost:9200
 ```
 
 ## Cleanup
