@@ -1,5 +1,5 @@
 # argocd-poc
-Deploying Elasticsearch + Kibana through Helm charts + ArgoCD + k3s
+Deploying Elasticsearch + Kibana through DigitalOcean + Terraform + Helm + ArgoCD + k3s
 
 ## Import SSH key
 
