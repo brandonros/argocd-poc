@@ -24,3 +24,11 @@ kubectl create configmap -n docker-registry registry-auth --from-file=/dev/stdin
   }
 }
 EOF
+# TODO: mark registry as insecure with k3s
+# sudo cat /etc/rancher/k3s/registries.yaml 
+#mirrors:
+#  "10.43.129.67:5000":
+#    endpoint:
+#      - "http://10.43.129.67:5000"
+# restart
+sudo systemctl restart k3s 
