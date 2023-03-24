@@ -12,7 +12,7 @@ IMAGE_TAG="my-image:0.0.1"
 # create namespace
 #kubectl create namespace test
 # deploy
-argocd app create test --repo "https://github.com/brandonros/argocd-poc.git" --path test --revision "4a52a7f67ae3a6a3b2782b684c35659342847883" --dest-namespace test --dest-server https://kubernetes.default.svc --helm-set image.tag="$REGISTRY_URL/$IMAGE_TAG"
+argocd app create test --repo "https://github.com/brandonros/argocd-poc.git" --path test --dest-namespace test --dest-server https://kubernetes.default.svc --helm-set image.tag="$REGISTRY_URL/$IMAGE_TAG"
 argocd app sync test
 # wait for it to roll out
 argocd app wait test
