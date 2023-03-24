@@ -1,5 +1,6 @@
 replicaCount: 1
 image:
+  repository: ""
   tag: ""
 imagePullSecrets: []
 nameOverride: ""
