@@ -11,7 +11,7 @@ wget "https://github.com/argoproj/argo-cd/releases/download/v2.6.7/argocd-linux-
 chmod +x argocd-linux-amd64
 sudo mv argocd-linux-amd64 /usr/local/bin/argocd
 # install dependencies
-sudo apt-get update && sudo apt-get install -y jq
+sudo apt-get install -y jq
 # log in to argocd
 CLUSTER_IP=$(kubectl -n argocd get service/argocd-server -o=jsonpath='{.spec.clusterIP}')
 ARGOCD_PASSWORD=$(kubectl --namespace argocd get secret argocd-initial-admin-secret -o json | jq -r '.data.password' | base64 -d)

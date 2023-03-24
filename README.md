@@ -36,13 +36,24 @@ sleep 15 && ./scripts/002-power-cycle-droplet.sh && sleep 15
 scp ./scripts/003-install-k3s.sh brandon@$EXTERNAL_IP:/tmp && ssh -t brandon@$EXTERNAL_IP 'bash -c "chmod +x /tmp/003-install-k3s.sh && /tmp/003-install-k3s.sh"'
 scp ./scripts/004-install-argocd.sh brandon@$EXTERNAL_IP:/tmp && ssh -t brandon@$EXTERNAL_IP 'bash -c "chmod +x /tmp/004-install-argocd.sh && /tmp/004-install-argocd.sh"'
 scp ./scripts/005-install-elk.sh brandon@$EXTERNAL_IP:/tmp && ssh -t brandon@$EXTERNAL_IP 'bash -c "chmod +x /tmp/005-install-elk.sh && /tmp/005-install-elk.sh"'
+```
+
+## Using ArgoCD UI
+
+```shell
 # get argocd password (username is admin)
 ssh brandon@$EXTERNAL_IP 'bash -c "KUBECONFIG=~/.kube/config kubectl --namespace argocd get secret argocd-initial-admin-secret -o json | jq -r '.data.password' | base64 -d"'
+# tunnel
+ssh -L 8080:127.0.0.1:8080 brandon@$EXTERNAL_IP 'bash -c "KUBECONFIG=~/.kube/config kubectl port-forward svc/argocd-server -n argocd 8080:443"'
+# go to argocd in browser at https://localhost:8080
+```
+
+## Using Kibana UI
+
+```shell
 # get kibana password (username is elastic)
 ssh brandon@$EXTERNAL_IP 'bash -c "KUBECONFIG=~/.kube/config kubectl --namespace elk get secret elasticsearch-master-credentials -o json | jq -r '.data.password' | base64 -d"'
 # tunnel
-ssh -L 8080:127.0.0.1:8080 brandon@$EXTERNAL_IP 'bash -c "KUBECONFIG=~/.kube/config kubectl port-forward svc/argocd-server -n argocd 8080:443"'
 ssh -L 5601:127.0.0.1:5601 brandon@$EXTERNAL_IP 'bash -c "KUBECONFIG=~/.kube/config kubectl port-forward svc/kibana-kibana -n elk 5601:5601"'
-# go to argocd in browser at https://localhost:8080
 # go to kibana in browser at https://localhost:5601
 ```
