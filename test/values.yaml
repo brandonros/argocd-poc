@@ -1,6 +1,9 @@
 replicaCount: 1
 image:
-  tag: my-image:0.0.1  
+  tag: ""
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
 service:
   type: ClusterIP
   port: 3000
