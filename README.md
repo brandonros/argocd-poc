@@ -21,7 +21,7 @@ curl -X POST \
 terraform init && terraform apply -var "digitalocean_token=$DIGITALOCEAN_TOKEN"
 ```
 
-## Provision
+## Prepare droplet
 
 ```shell
 # get IP
@@ -32,9 +32,16 @@ while ! nc -z $EXTERNAL_IP 22; do sleep 1; done
 scp ./scripts/000-configure-user.sh root@$EXTERNAL_IP:/tmp && ssh -t root@$EXTERNAL_IP 'bash /tmp/000-configure-user.sh'
 # update droplet
 scp ./scripts/001-update-droplet.sh root@$EXTERNAL_IP:/tmp && ssh -t root@$EXTERNAL_IP 'bash /tmp/001-update-droplet.sh'
-# poweroff, sleep, powercycle
+# poweroff, sleep, powercycle in order to boot to new kernel and complete full upgrade
 ssh root@$EXTERNAL_IP 'bash -c "poweroff"'
 sleep 15 && ./scripts/002-power-cycle-droplet.sh
+```
+
+## Provision Kubernetes + ArgoCD + Kubernetes Dashboard + Docker Registry
+
+```shell
+# get IP
+EXTERNAL_IP=$(terraform show -json terraform.tfstate | jq -r '.values.root_module.resources[] | select(.address=="digitalocean_droplet.argocd-poc") | .values.ipv4_address')
 # wait for SSH to be available
 while ! nc -z $EXTERNAL_IP 22; do sleep 1; done
 # install k3s
@@ -45,11 +52,20 @@ scp ./scripts/004-deploy-argocd.sh brandon@$EXTERNAL_IP:/tmp && ssh -t brandon@$
 scp ./scripts/005-deploy-kubernetes-dashboard.sh brandon@$EXTERNAL_IP:/tmp && ssh -t brandon@$EXTERNAL_IP 'bash /tmp/005-deploy-kubernetes-dashboard.sh'
 # deploy docker registry
 scp ./scripts/006-deploy-docker-registry.sh brandon@$EXTERNAL_IP:/tmp && ssh -t brandon@$EXTERNAL_IP 'bash /tmp/006-deploy-docker-registry.sh'
-# deploy elk stack
+```
+
+## Provision application + dependencies
+
+```shell
+# get IP
+EXTERNAL_IP=$(terraform show -json terraform.tfstate | jq -r '.values.root_module.resources[] | select(.address=="digitalocean_droplet.argocd-poc") | .values.ipv4_address')
+# wait for SSH to be available
+while ! nc -z $EXTERNAL_IP 22; do sleep 1; done
+# deploy elk stack as app dependencies
 scp ./scripts/007-deploy-elk-stack.sh brandon@$EXTERNAL_IP:/tmp && ssh -t brandon@$EXTERNAL_IP 'bash /tmp/007-deploy-elk-stack.sh'
-# build custom OCI image
+# build app custom OCI image
 scp ./scripts/008-build-custom-oci-image.sh brandon@$EXTERNAL_IP:/tmp && ssh -t brandon@$EXTERNAL_IP 'bash /tmp/008-build-custom-oci-image.sh'
-# build deploy custom OCI image
+# deploy app custom OCI image as argocd app through helm charts
 scp ./scripts/009-deploy-custom-oci-image.sh brandon@$EXTERNAL_IP:/tmp && ssh -t brandon@$EXTERNAL_IP 'bash /tmp/009-deploy-custom-oci-image.sh'
 ```
 
