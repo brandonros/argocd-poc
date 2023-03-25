@@ -1,4 +1,5 @@
 #!/bin/bash
+# exit on errors
 set -e
 # get droplet ID
 DROPLET_ID=$(terraform show -json terraform.tfstate | jq -r '.values.root_module.resources[] | select(.address=="digitalocean_droplet.argocd-poc") | .values.id')

@@ -1,5 +1,7 @@
 #!/bin/bash
+# exit on errors
 set -e
+# variables
 GROUP_NAME="brandon"
 USERNAME="brandon"
 PASSWORD="........"
@@ -11,7 +13,7 @@ useradd --create-home --shell /bin/bash -g "$GROUP_NAME" "$USERNAME"
 echo "$USERNAME:$PASSWORD" | chpasswd
 # add user to sudo
 usermod -aG sudo "$USERNAME"
-# copy authorized_keys to user
+# copy root ssh authorized_keys to user
 cp -r /root/.ssh /home/$USERNAME/.ssh
 # change privileges
 chown -R $USERNAME:$GROUP_NAME /home/$USERNAME/.ssh

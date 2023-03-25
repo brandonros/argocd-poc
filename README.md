@@ -39,18 +39,18 @@ sleep 15 && ./scripts/002-power-cycle-droplet.sh
 while ! nc -z $EXTERNAL_IP 22; do sleep 1; done
 # install k3s
 scp ./scripts/003-install-k3s.sh brandon@$EXTERNAL_IP:/tmp && ssh -t brandon@$EXTERNAL_IP 'bash /tmp/003-install-k3s.sh'
-# install dependencies
-scp ./scripts/004-install-dependencies.sh brandon@$EXTERNAL_IP:/tmp && ssh -t brandon@$EXTERNAL_IP 'bash /tmp/004-install-dependencies.sh'
 # deploy argocd
 scp ./scripts/004-deploy-argocd.sh brandon@$EXTERNAL_IP:/tmp && ssh -t brandon@$EXTERNAL_IP 'bash /tmp/004-deploy-argocd.sh'
-# deploy elk stack
-scp ./scripts/005-deploy-elk-stack.sh brandon@$EXTERNAL_IP:/tmp && ssh -t brandon@$EXTERNAL_IP 'bash /tmp/005-deploy-elk-stack.sh'
+# deploy kubernetes dashboard
+scp ./scripts/005-deploy-kubernetes-dashboard.sh brandon@$EXTERNAL_IP:/tmp && ssh -t brandon@$EXTERNAL_IP 'bash /tmp/005-deploy-kubernetes-dashboard.sh'
 # deploy docker registry
 scp ./scripts/006-deploy-docker-registry.sh brandon@$EXTERNAL_IP:/tmp && ssh -t brandon@$EXTERNAL_IP 'bash /tmp/006-deploy-docker-registry.sh'
+# deploy elk stack
+scp ./scripts/007-deploy-elk-stack.sh brandon@$EXTERNAL_IP:/tmp && ssh -t brandon@$EXTERNAL_IP 'bash /tmp/007-deploy-elk-stack.sh'
 # build custom OCI image
-scp ./scripts/007-build-custom-oci-image.sh brandon@$EXTERNAL_IP:/tmp && ssh -t brandon@$EXTERNAL_IP 'bash /tmp/007-build-custom-oci-image.sh'
+scp ./scripts/008-build-custom-oci-image.sh brandon@$EXTERNAL_IP:/tmp && ssh -t brandon@$EXTERNAL_IP 'bash /tmp/008-build-custom-oci-image.sh'
 # build deploy custom OCI image
-scp ./scripts/008-deploy-custom-oci-image.sh brandon@$EXTERNAL_IP:/tmp && ssh -t brandon@$EXTERNAL_IP 'bash /tmp/008-deploy-custom-oci-image.sh'
+scp ./scripts/009-deploy-custom-oci-image.sh brandon@$EXTERNAL_IP:/tmp && ssh -t brandon@$EXTERNAL_IP 'bash /tmp/009-deploy-custom-oci-image.sh'
 ```
 
 ## Using ArgoCD UI
@@ -61,6 +61,14 @@ ssh brandon@$EXTERNAL_IP 'bash -c "KUBECONFIG=~/.kube/config kubectl --namespace
 # tunnel
 ssh -L 8080:127.0.0.1:8080 brandon@$EXTERNAL_IP 'bash -c "KUBECONFIG=~/.kube/config kubectl port-forward svc/argocd-server -n argocd 8080:443"'
 # go to argocd in browser at https://localhost:8080
+```
+
+## Using Kubernetes Dashboard
+
+```shell
+# tunnel
+ssh -L 8443:127.0.0.1:8443 brandon@$EXTERNAL_IP 'bash -c "KUBECONFIG=~/.kube/config kubectl port-forward svc/kubernetes-dashboard -n dashboard 8443:443"'
+# open browser to https://localhost:8443
 ```
 
 ## Using Kibana UI

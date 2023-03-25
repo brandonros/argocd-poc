@@ -3,14 +3,15 @@
 set -e
 # load kubeconfig
 export KUBECONFIG=~/.kube/config
-# get registry IP
-DOCKER_REGISTRY_CLUSTER_IP=$(kubectl -n docker-registry get service/docker-registry -o=jsonpath='{.spec.clusterIP}')
-PORT=5000
-REGISTRY_URL="$DOCKER_REGISTRY_CLUSTER_IP:$PORT"
 # variables
+REGISTRY_URL="docker-registry.docker-registry.svc.cluster.local:5000"
 IMAGE_TAG="my-image:0.0.1"
-# get context
-#git clone https://github.com/brandonros/argocd-poc.git
+REPO_URL="https://github.com/brandonros/argocd-poc.git"
+BRANCH_NAME="master"
+BUILD_CONTEXT_DIRECTORY="./test/"
+# get repo
+WORK_DIR=$(mktemp -d -p /tmp)
+git clone --depth=1 --branch "$BRANCH_NAME" "$REPO_URL" "$WORK_DIR"
 # build json overrides
 OVERRIDES=$(
 cat <<EOF
@@ -49,10 +50,15 @@ cat <<EOF
 EOF
 )
 # tar context and send toi kubectl run which will pull kaniko executor image
-tar --create --file=- --verbose --gzip --directory=./argocd-poc/test/ . | kubectl run -n docker-registry \
-  kaniko \
+RANDOM_BYTES=$(echo $RANDOM | md5sum | head -c 10)
+POD_NAME="kaniko-$RANDOM_BYTES"
+DIRECTORY=$(realpath "$WORK_DIR/$BUILD_CONTEXT_DIRECTORY")
+tar --create --file=- --verbose --directory="$DIRECTORY" --gzip index.mjs package.json package-lock.json Dockerfile .dockerignore | kubectl run -n kaniko \
+  "$POD_NAME" \
   --rm \
   --stdin=true \
   --image=gcr.io/kaniko-project/executor:latest \
   --restart=Never \
   --overrides="$OVERRIDES"
+# cleanup
+rm -rf "$WORK_DIR"

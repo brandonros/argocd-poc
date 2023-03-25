@@ -1,4 +1,5 @@
 #!/bin/bash
+# exit on errors
 set -e
 # install k3s
 curl -sfL https://get.k3s.io | sh -

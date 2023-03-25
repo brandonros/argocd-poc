@@ -10,25 +10,33 @@ argocd app create docker-registry --repo "https://github.com/twuni/docker-regist
 argocd app sync docker-registry
 # wait for it to roll out
 argocd app wait docker-registry
-# get registry IP
-DOCKER_REGISTRY_CLUSTER_IP=$(kubectl -n docker-registry get service/docker-registry -o=jsonpath='{.spec.clusterIP}')
-PORT=5000
-REGISTRY_URL="$DOCKER_REGISTRY_CLUSTER_IP:$PORT"
 # create configmap (auth can be empty/is not required)
-kubectl create configmap -n docker-registry registry-auth --from-file=/dev/stdin -- << EOF
+kubectl delete configmap -n kaniko registry-auth 
+kubectl create configmap -n kaniko registry-auth --from-file=/dev/stdin -- << EOF
 {
   "auths": {
-    "http://$REGISTRY_URL/v2/": {
+    "http://docker-registry.docker-registry.svc.cluster.local:5000/v2/": {
+      "auth": ""
+    },
+    "http://docker-registry.docker-registry.svc:5000/v2/": {
       "auth": ""
     }
   }
 }
 EOF
-# TODO: mark registry as insecure with k3s
-# sudo cat /etc/rancher/k3s/registries.yaml 
-#mirrors:
-#  "10.43.129.67:5000":
-#    endpoint:
-#      - "http://10.43.129.67:5000"
+# mark registry http instead of https
+REGISTRIES_YAML=$(
+cat <<EOF
+mirrors:
+  "docker-registry.docker-registry.svc:5000":
+    endpoint:
+      - "http://docker-registry.docker-registry.svc:5000"
+  "docker-registry.docker-registry.svc.cluster.local:5000":
+    endpoint:
+      - "http://docker-registry.docker-registry.svc.cluster.local:5000"
+
+EOF
+)
+echo "$REGISTRIES_YAML" | sudo tee /etc/rancher/k3s/registries.yaml 
 # restart
 sudo systemctl restart k3s 
