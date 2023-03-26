@@ -8,6 +8,11 @@ app.post('/index', async (req, res) => {
     const elasticsearchUsername = process.env.ELASTICSEARCH_USERNAME
     const elasticsearchPassword = process.env.ELASTICSEARCH_PASSWORD
     const elasticsearchUrl = process.env.ELASTICSEARCH_URL
+    console.log({
+      elasticsearchUsername,
+      elasticsearchPassword,
+      elasticsearchUrl
+    })
     const indexerChunkSize = 1
     const elasticsearchBulkIndexer = new ElasticsearchBulkIndexer(
       elasticsearchUsername,
