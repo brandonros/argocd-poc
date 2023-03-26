@@ -4,8 +4,8 @@ set -e
 # load kubeconfig
 export KUBECONFIG=~/.kube/config
 # variables
-REGISTRY_URL="docker-registry.docker-registry.svc.cluster.local:5000"
-IMAGE_TAG="my-image:0.0.1"
+INTERNAL_REGISTRY_URL="docker-registry.docker-registry.svc.cluster.local:5000"
+IMAGE_TAG="test:0.0.1"
 REPO_URL="https://github.com/brandonros/argocd-poc.git"
 BRANCH_NAME="master"
 BUILD_CONTEXT_DIRECTORY="./test/"
@@ -27,33 +27,19 @@ cat <<EOF
         "args": [
           "--dockerfile=Dockerfile",
           "--context=tar://stdin",
-          "--destination=$REGISTRY_URL/$IMAGE_TAG"
-        ],
-        "volumeMounts": [
-          {
-            "name": "registry-auth",
-            "mountPath": "/kaniko/.docker/"
-          }
+          "--destination=$INTERNAL_REGISTRY_URL/$IMAGE_TAG"
         ]
-      }
-    ],
-    "volumes": [
-      {
-        "name": "registry-auth",
-        "configMap": {
-          "name": "registry-auth"
-        }
       }
     ]
   }
 }
 EOF
 )
-# tar context and send toi kubectl run which will pull kaniko executor image
+# tar context and send to kubectl run which will pull kaniko executor image
 RANDOM_BYTES=$(echo $RANDOM | md5sum | head -c 10)
 POD_NAME="kaniko-$RANDOM_BYTES"
 DIRECTORY=$(realpath "$WORK_DIR/$BUILD_CONTEXT_DIRECTORY")
-tar --create --file=- --verbose --directory="$DIRECTORY" --gzip index.mjs package.json package-lock.json Dockerfile .dockerignore | kubectl run -n kaniko \
+tar --create --file=- --verbose --directory="$DIRECTORY" --gzip --verbose index.mjs package.json package-lock.json Dockerfile .dockerignore | kubectl run -n kaniko \
   "$POD_NAME" \
   --rm \
   --stdin=true \

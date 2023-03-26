@@ -1,0 +1,248 @@
+# assumes ansible in PATH
+# assumes DIGITALOCEAN_TOKEN environment variable set
+# assumes ssh public key already generated at ~/.ssh/id_rsa.pub
+# run with `ansible-playbook --ask-become -vvv ansible/playbook.yaml`
+- name: create droplet
+  hosts: localhost
+  gather_facts: false
+  connection: local
+  vars:
+    digitalocean_token: "{{ lookup('ansible.builtin.env', 'DIGITALOCEAN_TOKEN') }}"
+  tasks:
+    - name: Create SSH key
+      community.digitalocean.digital_ocean_sshkey:
+        oauth_token: "{{ digitalocean_token }}"
+        name: argocd-poc
+        ssh_pub_key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+        state: present
+      register: ssh_key
+
+    - name: Create a new Droplet
+      register: droplet
+      community.digitalocean.digital_ocean_droplet:
+        oauth_token: "{{ digitalocean_token }}"
+        state: present
+        name: argocd-poc
+        unique_name: true
+        size: s-2vcpu-4gb
+        region: nyc3
+        image: debian-11-x64
+        wait_timeout: 500
+        ssh_keys:
+          - "{{ ssh_key.data.ssh_key.id }}"
+
+    - name: register IP as fact
+      ansible.builtin.set_fact:
+        droplet_ip: "{{ (droplet.data.droplet.networks.v4 | selectattr('type', 'equalto', 'public')).0.ip_address | default('<none>', true) }}"
+        cacheable: true
+
+    - name: Add host to inventory
+      ansible.builtin.add_host:
+        name: "{{ ansible_facts.droplet_ip }}"
+        groups: "new_droplet"
+        ansible_user: root
+
+- name: setup user
+  hosts: new_droplet
+  tasks:
+    - name: Ensure group "brandon" exists
+      ansible.builtin.group:
+        name: brandon
+        state: present
+
+    - name: Ensure user "brandon" exists
+      ansible.builtin.user:
+        name: brandon
+        shell: /bin/bash
+        groups: sudo,brandon
+        create_home: true
+        home: /home/brandon
+        append: yes
+        password: "{{ 'foobar123' | password_hash('sha512') }}"
+
+    - name: add ssh key
+      ansible.posix.authorized_key:
+        user: brandon
+        state: present
+        key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+
+- name: setup packages
+  hosts: new_droplet
+  tasks:
+    - name: update apt cache
+      ansible.builtin.apt:
+        update_cache: yes
+
+    - name: Install a list of packages
+      ansible.builtin.apt:
+        pkg:
+          - jq
+          - git
+
+    - name: safe upgrade
+      ansible.builtin.apt:
+        upgrade: safe
+
+    - name: dist upgrade
+      ansible.builtin.apt:
+        upgrade: dist
+
+    - name: Remove dependencies that are no longer required
+      ansible.builtin.apt:
+        autoremove: yes
+    # TODO: poweroff + powercycle here to force new freshest kernel?
+
+- name: install k3s
+  hosts: new_droplet
+  become: true
+  become_user: brandon
+  tasks:
+    - name: Check for kubectl binary
+      ansible.builtin.command:
+        cmd: "which kubectl"
+      register: kubectl_check
+      ignore_errors: yes
+
+    - name: Download and install k3s if kubectl not found
+      ansible.builtin.shell: "curl -sfL https://get.k3s.io | sh -"
+      when: kubectl_check.rc != 0
+
+    - name: configure kubeconfig
+      ansible.builtin.shell: "mkdir ~/.kube 2> /dev/null && sudo k3s kubectl config view --raw > ~/.kube/config && chmod 600 ~/.kube/config"
+      when: kubectl_check.rc != 0
+
+- name: install argocd-cli
+  hosts: new_droplet
+  become: true
+  become_user: brandon
+  tasks:
+    - name: Check for binary
+      ansible.builtin.command:
+        cmd: "which argocd"
+      register: argocd_check
+      ignore_errors: yes
+
+    - name: Download and install argocd-cli if not found
+      ansible.builtin.shell: "wget https://github.com/argoproj/argo-cd/releases/download/v2.6.7/argocd-linux-amd64 && chmod +x argocd-linux-amd64 && sudo mv argocd-linux-amd64 /usr/local/bin/argocd"
+      when: argocd_check.rc != 0
+
+- name: deploy argocd
+  hosts: new_droplet
+  become: true
+  become_user: brandon
+  environment:
+    KUBECONFIG: "{{ ansible_env.HOME }}/.kube/config"
+  tasks:
+    - name: create namespace
+      ansible.builtin.shell: "kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -"
+
+    - name: rollout argocd
+      ansible.builtin.shell: "kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/v2.6.7/manifests/install.yaml && kubectl wait deployment -n argocd argocd-server --for condition=Available=True --timeout=90s"
+
+    - name: get IP
+      ansible.builtin.shell: "kubectl -n argocd get service/argocd-server -o=jsonpath='{.spec.clusterIP}'"
+      register: argocd_server_cluster_ip
+
+    - name: get password
+      ansible.builtin.shell: "kubectl -n argocd get secret argocd-initial-admin-secret -o json | jq -r '.data.password' | base64 -d"
+      register: argocd_password
+
+    - name: log in to argocd cli
+      ansible.builtin.shell: "argocd login {{ argocd_server_cluster_ip.stdout }}:443 --username admin --password {{ argocd_password.stdout }} --insecure"
+
+    - name: print password
+      ansible.builtin.debug:
+        msg: 'argocd admin password: {{ argocd_password.stdout }}'
+
+- name: deploy kubernetes-dashboard
+  hosts: new_droplet
+  become: true
+  become_user: brandon
+  vars:
+    admin_user_yaml: |
+      apiVersion: v1
+      kind: ServiceAccount
+      metadata:
+        name: admin-user
+        namespace: kubernetes-dashboard
+      ---
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      metadata:
+        name: admin-user
+      roleRef:
+        apiGroup: rbac.authorization.k8s.io
+        kind: ClusterRole
+        name: cluster-admin
+      subjects:
+      - kind: ServiceAccount
+        name: admin-user
+        namespace: kubernetes-dashboard
+  environment:
+    KUBECONFIG: "{{ ansible_env.HOME }}/.kube/config"
+  tasks:
+    - name: create namespace
+      ansible.builtin.shell: 'kubectl create namespace kubernetes-dashboard --dry-run=client -o yaml | kubectl apply -f -'
+
+    - name: create argocd app
+      ansible.builtin.shell: 'argocd app create kubernetes-dashboard --repo "https://github.com/kubernetes/dashboard.git" --revision "42deb6b32a27296ac47d1f9839a68fab6053e5fc" --path ./aio/deploy/recommended --dest-namespace kubernetes-dashboard --dest-server https://kubernetes.default.svc --upsert'
+
+    - name: rollout
+      ansible.builtin.shell: 'argocd app sync kubernetes-dashboard && argocd app wait kubernetes-dashboard'
+
+    - name: apply admin user
+      ansible.builtin.shell: 'echo "{{ admin_user_yaml }}" | kubectl -n kubernetes-dashboard apply -f /dev/stdin'
+
+    - name: get admin user token
+      ansible.builtin.shell: 'kubectl -n kubernetes-dashboard create token admin-user'
+      register: kubernetes_dashboard_token
+
+    - name: print token
+      ansible.builtin.debug:
+        msg: 'kubernetes dashboard admin login token: {{ kubernetes_dashboard_token.stdout }}'
+
+- name: deploy docker-registry
+  hosts: new_droplet
+  become: true
+  become_user: brandon
+  environment:
+    KUBECONFIG: "{{ ansible_env.HOME }}/.kube/config"
+  tasks:
+    - name: create namespace
+      ansible.builtin.shell: 'kubectl create namespace docker-registry --dry-run=client -o yaml | kubectl apply -f -'
+
+    - name: create argocd app
+      ansible.builtin.shell: 'argocd app create docker-registry --repo "https://github.com/twuni/docker-registry.helm.git" --revision "d74c33abd95567d1641fbfe68f2db85b6135b064" --path . --dest-namespace docker-registry --dest-server https://kubernetes.default.svc --helm-set autoscaling.maxReplicas=1 --upsert'
+
+    - name: rollout
+      ansible.builtin.shell: 'argocd app sync docker-registry && argocd app wait docker-registry'
+
+    - name: create kaniko namespace
+      ansible.builtin.shell: 'kubectl create namespace kaniko --dry-run=client -o yaml | kubectl apply -f -'
+
+    - name: check if registry already configured
+      stat:
+        path: /etc/rancher/k3s/registries.yaml
+      register: registry_configured
+
+    - name: configure registry as insecure (http instead of https)
+      become: true
+      become_user: root
+      ansible.builtin.shell: |
+        CLUSTER_IP=$(kubectl -n docker-registry get service/docker-registry -o=jsonpath='{.spec.clusterIP}')
+        REGISTRIES_YAML=$(
+        cat <<EOF
+        mirrors:
+          "$CLUSTER_IP:5000":
+            endpoint:
+              - "http://$CLUSTER_IP:5000"
+        EOF
+        )
+        echo "$REGISTRIES_YAML" | tee /etc/rancher/k3s/registries.yaml
+      when: registry_configured.stat.exists == false
+
+    - name: restart k3s to apply registry config change
+      become: true
+      become_user: root
+      ansible.builtin.shell: 'systemctl restart k3s'
+      when: registry_configured.stat.exists == false

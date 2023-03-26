@@ -1,5 +1,5 @@
 # argocd-poc
-Deploying Elasticsearch + Kibana through DigitalOcean + Terraform + Helm + ArgoCD + k3s
+Building + deploying OCI images + dependencies through DigitalOcean + Terraform + Helm + ArgoCD + k3s + Kaniko
 
 ## Import SSH key
 
@@ -83,7 +83,7 @@ ssh -L 8080:127.0.0.1:8080 brandon@$EXTERNAL_IP 'bash -c "KUBECONFIG=~/.kube/con
 
 ```shell
 # tunnel
-ssh -L 8443:127.0.0.1:8443 brandon@$EXTERNAL_IP 'bash -c "KUBECONFIG=~/.kube/config kubectl port-forward svc/kubernetes-dashboard -n dashboard 8443:443"'
+ssh -L 8443:127.0.0.1:8443 brandon@$EXTERNAL_IP 'bash -c "KUBECONFIG=~/.kube/config kubectl port-forward svc/kubernetes-dashboard -n kubernetes-dashboard 8443:443"'
 # open browser to https://localhost:8443
 ```
 

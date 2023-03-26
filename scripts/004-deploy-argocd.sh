@@ -8,7 +8,7 @@ wget https://github.com/argoproj/argo-cd/releases/download/v2.6.7/argocd-linux-a
 chmod +x argocd-linux-amd64
 sudo mv argocd-linux-amd64 /usr/local/bin/argocd
 # create namespace
-kubectl create namespace argocd
+kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
 # install argocd
 kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/v2.6.7/manifests/install.yaml
 # wait for it to roll out
