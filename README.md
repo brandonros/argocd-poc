@@ -74,6 +74,5 @@ ssh -L 3000:127.0.0.1:3000 brandon@$EXTERNAL_IP 'bash -c "KUBECONFIG=~/.kube/con
 ## Debugging DNS resolution
 
 ```shell
-kubectl run test-dns-busybox -i --tty --image=busybox:1.36.0 --rm --restart=Never -- nslookup elasticsearch-master.elk.svc.cluster.local
+kubectl run test-dns-busybox -i --tty --image=busybox:1.36.0 --rm --restart=Never -- nslookup elasticsearch-master-headless.elk.svc.cluster.local
 ```
-

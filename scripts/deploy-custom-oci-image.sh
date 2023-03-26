@@ -8,7 +8,7 @@ DOCKER_REGISTRY_CLUSTER_IP=$(kubectl -n docker-registry get service/docker-regis
 PORT=5000
 EXTERNAL_REGISTRY_URL="$DOCKER_REGISTRY_CLUSTER_IP:$PORT" # do not use kubernetes internal DNS because kubernetes node does not pull from pod context aka no access to internal DNS
 # variables
-IMAGE_TAG="test:0.0.4"
+IMAGE_TAG="test:0.0.5"
 # create namespace
 kubectl create namespace test --dry-run=client -o yaml | kubectl apply -f -
 # deploy
@@ -23,6 +23,6 @@ argocd app create test \
   --helm-set image.tag="$IMAGE_TAG" \
   --helm-set env.ELASTICSEARCH_USERNAME="$ELASTICSEARCH_USERNAME" \
   --helm-set env.ELASTICSEARCH_PASSWORD="$ELASTICSEARCH_PASSWORD" \
-  --helm-set env.ELASTICSEARCH_URL="http://elasticsearch-master.elk.svc.cluster.local:9200" \
+  --helm-set env.ELASTICSEARCH_URL="https://elasticsearch-master-headless.elk.svc.cluster.local:9200" \
   --upsert
 argocd app sync test && argocd app wait test
