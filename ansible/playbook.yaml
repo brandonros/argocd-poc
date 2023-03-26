@@ -1,7 +1,3 @@
-# assumes ansible in PATH
-# assumes DIGITALOCEAN_TOKEN environment variable set
-# assumes ssh public key already generated at ~/.ssh/id_rsa.pub
-# run with `ansible-playbook --ask-become -vvv ansible/playbook.yaml`
 - name: create droplet
   hosts: localhost
   gather_facts: false

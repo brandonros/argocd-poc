@@ -1,9 +1,0 @@
-#!/bin/bash
-# exit on errors
-set -e
-# install k3s
-curl -sfL https://get.k3s.io | sh -
-# configure KUBECONFIG
-mkdir ~/.kube 2> /dev/null
-sudo k3s kubectl config view --raw > ~/.kube/config
-chmod 600 ~/.kube/config
