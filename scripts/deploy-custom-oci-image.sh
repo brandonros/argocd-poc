@@ -19,6 +19,7 @@ argocd app create test \
   --path ./test/helm/ \
   --dest-namespace test \
   --dest-server https://kubernetes.default.svc \
+  --revision-history-limit 1 \
   --helm-set image.repository="$EXTERNAL_REGISTRY_URL" \
   --helm-set image.tag="$IMAGE_TAG" \
   --helm-set env.ELASTICSEARCH_USERNAME="$ELASTICSEARCH_USERNAME" \

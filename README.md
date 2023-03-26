@@ -46,7 +46,7 @@ ssh -L 8443:127.0.0.1:8443 brandon@$EXTERNAL_IP 'bash -c "KUBECONFIG=~/.kube/con
 ssh brandon@$EXTERNAL_IP 'bash -c "KUBECONFIG=~/.kube/config kubectl --namespace elk get secret elasticsearch-master-credentials -o json | jq -r '.data.password' | base64 -d"'
 # tunnel
 ssh -L 9200:127.0.0.1:9200 brandon@$EXTERNAL_IP 'bash -c "KUBECONFIG=~/.kube/config kubectl port-forward svc/kibana-kibana -n elk 9200:9200"'
-# use API at http://localhost:9200
+# use API at https://localhost:9200
 ```
 
 ## Using Kibana UI
@@ -55,8 +55,8 @@ ssh -L 9200:127.0.0.1:9200 brandon@$EXTERNAL_IP 'bash -c "KUBECONFIG=~/.kube/con
 # get kibana password (username is elastic)
 ssh brandon@$EXTERNAL_IP 'bash -c "KUBECONFIG=~/.kube/config kubectl --namespace elk get secret elasticsearch-master-credentials -o json | jq -r '.data.password' | base64 -d"'
 # tunnel
-ssh -L 5601:127.0.0.1:5601 brandon@$EXTERNAL_IP 'bash -c "KUBECONFIG=~/.kube/config kubectl port-forward svc/kibana-kibana -n elk 5601:5601"'
-# go to kibana in browser at https://localhost:5601
+ssh -L 5601:127.0.0.1:5601 -N brandon@$EXTERNAL_IP 'bash -c "KUBECONFIG=~/.kube/config kubectl port-forward svc/kibana-kibana -n elk 5601:5601"'
+# go to kibana in browser at http://localhost:5601
 ```
 
 ## Using Docker registry
@@ -69,6 +69,14 @@ ssh -L 5000:127.0.0.1:5000 brandon@$EXTERNAL_IP 'bash -c "KUBECONFIG=~/.kube/con
 
 ```shell
 ssh -L 3000:127.0.0.1:3000 brandon@$EXTERNAL_IP 'bash -c "KUBECONFIG=~/.kube/config kubectl port-forward svc/test -n test 3000:3000"'
+# test connecitivty
+curl -X POST -H 'Content-Type: application/json' http://localhost:3000/index -d '{
+  "indexName": "test",
+  "messageId": 1,
+  "message": {
+    "foo": "bar"
+  }
+}'
 ```
 
 ## Debugging DNS resolution
