@@ -3,7 +3,7 @@ import ElasticsearchBulkIndexer from 'elasticsearch-bulk-indexer'
 
 const app = express()
 app.use(express.json())
-app.post('/index', (req, res) => {
+app.post('/index', async (req, res) => {
   try {
     const elasticsearchUsername = process.env.ELASTICSEARCH_USERNAME
     const elasticsearchPassword = process.env.ELASTICSEARCH_PASSWORD
