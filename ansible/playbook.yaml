@@ -32,6 +32,10 @@
         droplet_ip: "{{ (droplet.data.droplet.networks.v4 | selectattr('type', 'equalto', 'public')).0.ip_address | default('<none>', true) }}"
         cacheable: true
 
+    - name: print droplet IP
+      ansible.builtin.debug:
+        msg: 'droplet IP: {{ ansible_facts.droplet_ip }}'
+
     - name: Add host to inventory
       ansible.builtin.add_host:
         name: "{{ ansible_facts.droplet_ip }}"

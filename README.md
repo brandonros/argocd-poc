@@ -23,7 +23,7 @@ ansible-playbook --ask-become -vvv ansible/playbook.yaml
 
 ```shell
 # get IP
-EXTERNAL_IP='...' # get from ansible output?
+EXTERNAL_IP='...' # get from ansible output
 # build app custom OCI image + deploy app custom OCI image as argocd app through helm charts
 scp ./scripts/build-custom-oci-image.sh brandon@$EXTERNAL_IP:/tmp && ssh -t brandon@$EXTERNAL_IP 'bash /tmp/build-custom-oci-image.sh' && scp ./scripts/deploy-custom-oci-image.sh brandon@$EXTERNAL_IP:/tmp && ssh -t brandon@$EXTERNAL_IP 'bash /tmp/deploy-custom-oci-image.sh'
 ```
@@ -64,13 +64,6 @@ ssh brandon@$EXTERNAL_IP 'bash -c "KUBECONFIG=~/.kube/config kubectl --namespace
 # tunnel
 ssh -L 5601:127.0.0.1:5601 -N brandon@$EXTERNAL_IP 'bash -c "KUBECONFIG=~/.kube/config kubectl port-forward svc/kibana-kibana -n elk 5601:5601"'
 # go to kibana in browser at http://localhost:5601
-```
-
-## Using Docker registry
-
-```shell
-# tunnel
-ssh -L 5000:127.0.0.1:5000 brandon@$EXTERNAL_IP 'bash -c "KUBECONFIG=~/.kube/config kubectl port-forward svc/docker-registry -n docker-registry 5000:5000"'
 ```
 
 ## Using Custom OCI image application
