@@ -5,7 +5,7 @@ set -e
 export KUBECONFIG=~/.kube/config
 # variables
 INTERNAL_REGISTRY_URL="docker-registry.docker-registry.svc.cluster.local:5000"
-IMAGE_TAG="test:0.0.5"
+IMAGE_TAG="test:0.0.1"
 REPO_URL="https://github.com/brandonros/argocd-poc.git"
 BRANCH_NAME="master"
 BUILD_CONTEXT_DIRECTORY="./test/"

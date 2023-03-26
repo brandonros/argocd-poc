@@ -78,7 +78,7 @@ ssh -L 5000:127.0.0.1:5000 brandon@$EXTERNAL_IP 'bash -c "KUBECONFIG=~/.kube/con
 ```shell
 # tunnel
 ssh -L 3000:127.0.0.1:3000 brandon@$EXTERNAL_IP 'bash -c "KUBECONFIG=~/.kube/config kubectl port-forward svc/test -n test 3000:3000"'
-# test connecitivty
+# test connectivity
 curl -X POST -H 'Content-Type: application/json' http://localhost:3000/index -d '{
   "indexName": "test",
   "messageId": 1,

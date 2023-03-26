@@ -208,7 +208,7 @@
       ansible.builtin.shell: 'argocd app sync kubernetes-dashboard && argocd app wait kubernetes-dashboard'
 
     - name: apply admin user
-      ansible.builtin.shell: 'echo "{{ admin_user_yaml }}" | kubectl -n kubernetes-dashboard apply -f /dev/stdin'
+      ansible.builtin.shell: 'echo "{{ admin_user_yaml }}" | kubectl -n kubernetes-dashboard apply -f -'
 
     - name: get admin user token
       ansible.builtin.shell: 'kubectl -n kubernetes-dashboard create token admin-user'
