@@ -8,7 +8,7 @@ RUN npm install --production
 # Bundle app source
 COPY . .
 # Permissions workaround
-RUN chown -R node:node .
+RUN chown -R node:node /app
 # Switch to non-root user
 USER node
 # Export command
