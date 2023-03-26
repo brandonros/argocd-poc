@@ -239,3 +239,25 @@
       become_user: root
       ansible.builtin.shell: 'systemctl restart k3s'
       when: registry_configured.stat.exists == false
+
+- name: deploy elasticsearch + kibana
+  hosts: new_droplet
+  become: true
+  become_user: brandon
+  environment:
+    KUBECONFIG: "{{ ansible_env.HOME }}/.kube/config"
+  tasks:
+    - name: create namespace
+      ansible.builtin.shell: 'kubectl create namespace elk --dry-run=client -o yaml | kubectl apply -f -'
+
+    - name: create elasticsearch app
+      ansible.builtin.shell: 'argocd app create elasticsearch --repo https://github.com/elastic/helm-charts.git --revision "v8.5.1" --path elasticsearch --dest-namespace elk --dest-server https://kubernetes.default.svc --helm-set minimumMasterNodes=1 --helm-set replicas=1 --helm-set minimumMasterNodes=1 --helm-set resources.requests.cpu=0 --helm-set resources.requests.memory=0'
+
+    - name: rollout
+      ansible.builtin.shell: 'argocd app sync elasticsearch && argocd app wait elasticsearch'
+
+    - name: create kibana app
+      ansible.builtin.shell: 'argocd app create kibana --repo https://github.com/elastic/helm-charts.git --revision "v8.5.1" --path kibana --dest-namespace elk --dest-server https://kubernetes.default.svc --helm-set resources.requests.cpu=0 --helm-set resources.requests.memory=0'
+
+    - name: rollout
+      ansible.builtin.shell: 'argocd app sync kibana && argocd app wait kibana'

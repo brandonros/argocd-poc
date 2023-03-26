@@ -3,13 +3,11 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "elasticsearch-bulk-indexer": "https://github.com/brandonros/elasticsearch-bulk-indexer.git",
     "express": "^4.18.2"
   }
 }

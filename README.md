@@ -14,13 +14,11 @@ ansible-playbook --ask-become -vvv ansible/playbook.yaml
 
 ```shell
 # get IP
-EXTERNAL_IP='...'
+EXTERNAL_IP='...' # get from ansible output?
 # deploy elk stack as app dependencies
 scp ./scripts/deploy-elk-stack.sh brandon@$EXTERNAL_IP:/tmp && ssh -t brandon@$EXTERNAL_IP 'bash /tmp/deploy-elk-stack.sh'
-# build app custom OCI image
-scp ./scripts/build-custom-oci-image.sh brandon@$EXTERNAL_IP:/tmp && ssh -t brandon@$EXTERNAL_IP 'bash /tmp/build-custom-oci-image.sh'
-# deploy app custom OCI image as argocd app through helm charts
-scp ./scripts/deploy-custom-oci-image.sh brandon@$EXTERNAL_IP:/tmp && ssh -t brandon@$EXTERNAL_IP 'bash /tmp/09-deploy-custom-oci-image.sh'
+# build app custom OCI image + deploy app custom OCI image as argocd app through helm charts
+scp ./scripts/build-custom-oci-image.sh brandon@$EXTERNAL_IP:/tmp && ssh -t brandon@$EXTERNAL_IP 'bash /tmp/build-custom-oci-image.sh' && scp ./scripts/deploy-custom-oci-image.sh brandon@$EXTERNAL_IP:/tmp && ssh -t brandon@$EXTERNAL_IP 'bash /tmp/deploy-custom-oci-image.sh'
 ```
 
 ## Using ArgoCD UI
@@ -41,16 +39,6 @@ ssh -L 8443:127.0.0.1:8443 brandon@$EXTERNAL_IP 'bash -c "KUBECONFIG=~/.kube/con
 # open browser to https://localhost:8443
 ```
 
-## Using Kibana UI
-
-```shell
-# get kibana password (username is elastic)
-ssh brandon@$EXTERNAL_IP 'bash -c "KUBECONFIG=~/.kube/config kubectl --namespace elk get secret elasticsearch-master-credentials -o json | jq -r '.data.password' | base64 -d"'
-# tunnel
-ssh -L 5601:127.0.0.1:5601 brandon@$EXTERNAL_IP 'bash -c "KUBECONFIG=~/.kube/config kubectl port-forward svc/kibana-kibana -n elk 5601:5601"'
-# go to kibana in browser at https://localhost:5601
-```
-
 ## Using Elasticsearch API
 
 ```shell
@@ -59,6 +47,16 @@ ssh brandon@$EXTERNAL_IP 'bash -c "KUBECONFIG=~/.kube/config kubectl --namespace
 # tunnel
 ssh -L 9200:127.0.0.1:9200 brandon@$EXTERNAL_IP 'bash -c "KUBECONFIG=~/.kube/config kubectl port-forward svc/kibana-kibana -n elk 9200:9200"'
 # use API at http://localhost:9200
+```
+
+## Using Kibana UI
+
+```shell
+# get kibana password (username is elastic)
+ssh brandon@$EXTERNAL_IP 'bash -c "KUBECONFIG=~/.kube/config kubectl --namespace elk get secret elasticsearch-master-credentials -o json | jq -r '.data.password' | base64 -d"'
+# tunnel
+ssh -L 5601:127.0.0.1:5601 brandon@$EXTERNAL_IP 'bash -c "KUBECONFIG=~/.kube/config kubectl port-forward svc/kibana-kibana -n elk 5601:5601"'
+# go to kibana in browser at https://localhost:5601
 ```
 
 ## Using Docker registry

@@ -12,5 +12,17 @@ IMAGE_TAG="test:0.0.1"
 # create namespace
 kubectl create namespace test --dry-run=client -o yaml | kubectl apply -f -
 # deploy
-argocd app create test --repo "https://github.com/brandonros/argocd-poc.git" --path ./test/helm/ --dest-namespace test --dest-server https://kubernetes.default.svc --helm-set image.repository="$EXTERNAL_REGISTRY_URL" --helm-set image.tag="$IMAGE_TAG" --helm-set env.foo="bar" --upsert
+ELASTICSEARCH_USERNAME=$(kubectl -n elk get secret elasticsearch-master-credentials -o json | jq -r '.data.username' | base64 -d)
+ELASTICSEARCH_PASSWORD=$(kubectl -n elk get secret elasticsearch-master-credentials -o json | jq -r '.data.password' | base64 -d)
+argocd app create test \
+  --repo "https://github.com/brandonros/argocd-poc.git" \
+  --path ./test/helm/ \
+  --dest-namespace test \
+  --dest-server https://kubernetes.default.svc \
+  --helm-set image.repository="$EXTERNAL_REGISTRY_URL" \
+  --helm-set image.tag="$IMAGE_TAG" \
+  --helm-set env.ELASTICSEARCH_USERNAME="$ELASTICSEARCH_USERNAME" \
+  --helm-set env.ELASTICSEARCH_PASSWORD="$ELASTICSEARCH_PASSWORD" \
+  --helm-set env.ELASTICSEARCH_URL="http://elasticsearch-master.elk.cluster.local:9200" \
+  --upsert
 argocd app sync test && argocd app wait test

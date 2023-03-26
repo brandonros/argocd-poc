@@ -1,6 +1,8 @@
 FROM node:18-alpine
 # Create app directory
 WORKDIR /app
+# Install git
+RUN apk add --no-cache git
 # Install app dependencies
 COPY package.json ./
 COPY package-lock.json ./
