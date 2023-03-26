@@ -213,9 +213,6 @@
     - name: rollout
       ansible.builtin.shell: 'argocd app sync docker-registry && argocd app wait docker-registry'
 
-    - name: create kaniko namespace
-      ansible.builtin.shell: 'kubectl create namespace kaniko --dry-run=client -o yaml | kubectl apply -f -'
-
     - name: check if registry already configured
       stat:
         path: /etc/rancher/k3s/registries.yaml

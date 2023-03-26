@@ -11,4 +11,3 @@ argocd app sync elasticsearch && argocd app wait elasticsearch
 # deploy kibana
 argocd app create kibana --repo https://github.com/elastic/helm-charts.git --revision "v8.5.1" --path kibana --dest-namespace elk --dest-server https://kubernetes.default.svc --helm-set resources.requests.cpu=0 --helm-set resources.requests.memory=0
 argocd app sync kibana && argocd app wait kibana
-

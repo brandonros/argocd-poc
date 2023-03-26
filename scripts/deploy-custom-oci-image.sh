@@ -12,6 +12,5 @@ IMAGE_TAG="test:0.0.1"
 # create namespace
 kubectl create namespace test --dry-run=client -o yaml | kubectl apply -f -
 # deploy
-argocd app create test --repo "https://github.com/brandonros/argocd-poc.git" --path ./test/helm/ --dest-namespace test --dest-server https://kubernetes.default.svc --helm-set image.repository="$EXTERNAL_REGISTRY_URL" --helm-set image.tag="$IMAGE_TAG" --upsert
+argocd app create test --repo "https://github.com/brandonros/argocd-poc.git" --path ./test/helm/ --dest-namespace test --dest-server https://kubernetes.default.svc --helm-set image.repository="$EXTERNAL_REGISTRY_URL" --helm-set image.tag="$IMAGE_TAG" --helm-set env.foo="bar" --upsert
 argocd app sync test && argocd app wait test
-

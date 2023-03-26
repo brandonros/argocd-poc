@@ -35,6 +35,8 @@ cat <<EOF
 }
 EOF
 )
+# make sure kaniko namespace exists
+kubectl create namespace kaniko --dry-run=client -o yaml | kubectl apply -f -
 # tar context and send to kubectl run which will pull kaniko executor image
 RANDOM_BYTES=$(echo $RANDOM | md5sum | head -c 10)
 POD_NAME="kaniko-$RANDOM_BYTES"
