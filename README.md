@@ -4,10 +4,14 @@ Building + deploying OCI images + dependencies through DigitalOcean + Ansible + 
 ## Pre-requisites
 
 ```shell
+# install xcode utils
+TODO
 # install brew
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 # install ansible
 brew install ansible
+# ssh key
+ssh-keygen
 ```
 
 ## Provision droplet
