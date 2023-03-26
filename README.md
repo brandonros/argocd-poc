@@ -1,6 +1,15 @@
 # argocd-poc
 Building + deploying OCI images + dependencies through DigitalOcean + Ansible + Helm + ArgoCD + k3s + Kaniko
 
+## Pre-requisites
+
+```shell
+# install brew
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+# install ansible
+brew install ansible
+```
+
 ## Provision droplet
 
 ```shell
@@ -15,8 +24,6 @@ ansible-playbook --ask-become -vvv ansible/playbook.yaml
 ```shell
 # get IP
 EXTERNAL_IP='...' # get from ansible output?
-# deploy elk stack as app dependencies
-scp ./scripts/deploy-elk-stack.sh brandon@$EXTERNAL_IP:/tmp && ssh -t brandon@$EXTERNAL_IP 'bash /tmp/deploy-elk-stack.sh'
 # build app custom OCI image + deploy app custom OCI image as argocd app through helm charts
 scp ./scripts/build-custom-oci-image.sh brandon@$EXTERNAL_IP:/tmp && ssh -t brandon@$EXTERNAL_IP 'bash /tmp/build-custom-oci-image.sh' && scp ./scripts/deploy-custom-oci-image.sh brandon@$EXTERNAL_IP:/tmp && ssh -t brandon@$EXTERNAL_IP 'bash /tmp/deploy-custom-oci-image.sh'
 ```
@@ -62,12 +69,14 @@ ssh -L 5601:127.0.0.1:5601 -N brandon@$EXTERNAL_IP 'bash -c "KUBECONFIG=~/.kube/
 ## Using Docker registry
 
 ```shell
+# tunnel
 ssh -L 5000:127.0.0.1:5000 brandon@$EXTERNAL_IP 'bash -c "KUBECONFIG=~/.kube/config kubectl port-forward svc/docker-registry -n docker-registry 5000:5000"'
 ```
 
 ## Using Custom OCI image application
 
 ```shell
+# tunnel
 ssh -L 3000:127.0.0.1:3000 brandon@$EXTERNAL_IP 'bash -c "KUBECONFIG=~/.kube/config kubectl port-forward svc/test -n test 3000:3000"'
 # test connecitivty
 curl -X POST -H 'Content-Type: application/json' http://localhost:3000/index -d '{

@@ -92,6 +92,8 @@
   hosts: new_droplet
   become: true
   become_user: brandon
+  environment:
+    USER_KUBE_PATH: "{{ ansible_env.HOME }}/.kube"
   tasks:
     - name: Check for kubectl binary
       ansible.builtin.command:
@@ -101,10 +103,27 @@
 
     - name: Download and install k3s if kubectl not found
       ansible.builtin.shell: "curl -sfL https://get.k3s.io | sh -"
+      become: true
+      become_user: root
       when: kubectl_check.rc != 0
 
-    - name: configure kubeconfig
-      ansible.builtin.shell: "mkdir ~/.kube 2> /dev/null && sudo k3s kubectl config view --raw > ~/.kube/config && chmod 600 ~/.kube/config"
+    - name: get kubeconfig
+      ansible.builtin.shell: 'k3s kubectl config view --raw'
+      become: true
+      become_user: root
+      when: kubectl_check.rc != 0
+      register: kubeconfig
+
+    - name: print kubeconfig
+      when: kubectl_check.rc != 0
+      ansible.builtin.debug:
+        msg: 'kubeconfig: {{ kubeconfig.stdout }}'
+
+    - name: configure kubeconfig for user
+      ansible.builtin.shell: |
+        mkdir $USER_KUBE_PATH 2> /dev/null
+        echo "{{ kubeconfig.stdout }}" > $USER_KUBE_PATH/config
+        chmod 600 $USER_KUBE_PATH/config
       when: kubectl_check.rc != 0
 
 - name: install argocd-cli
@@ -119,7 +138,9 @@
       ignore_errors: yes
 
     - name: Download and install argocd-cli if not found
-      ansible.builtin.shell: "wget https://github.com/argoproj/argo-cd/releases/download/v2.6.7/argocd-linux-amd64 && chmod +x argocd-linux-amd64 && sudo mv argocd-linux-amd64 /usr/local/bin/argocd"
+      become: true
+      become_user: root
+      ansible.builtin.shell: "wget https://github.com/argoproj/argo-cd/releases/download/v2.6.7/argocd-linux-amd64 && chmod +x argocd-linux-amd64 && mv argocd-linux-amd64 /usr/local/bin/argocd"
       when: argocd_check.rc != 0
 
 - name: deploy argocd
