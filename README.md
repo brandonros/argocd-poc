@@ -16,6 +16,8 @@ brew install ansible
 # assumes ansible in PATH
 # assumes DIGITALOCEAN_TOKEN environment variable set
 # assumes ssh public key already generated at ~/.ssh/id_rsa.pub
+git clone https://github.com/brandonros/argocd-poc.git
+cd argocd-poc
 ansible-playbook --ask-become -vvv ansible/playbook.yaml
 ```
 
