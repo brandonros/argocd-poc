@@ -36,8 +36,12 @@ ansible-playbook --ask-become ansible/playbook.yaml # password is foobar123
 ## Provision application
 
 ```shell
-# get digitalocean droplet external IP from file created by ansible, then copy deploy scripts to virtual machine, then build app custom OCI image + deploy app custom OCI image as argocd app through helm charts
-EXTERNAL_IP=$(cat /tmp/droplet-ip.txt) scp ./scripts/build-custom-oci-image.sh ./scripts/deploy-custom-oci-image.sh debian@$EXTERNAL_IP:/tmp && ssh -t debian@$EXTERNAL_IP 'bash /tmp/build-custom-oci-image.sh && bash /tmp/deploy-custom-oci-image.sh'
+# get digitalocean droplet external IP from file created by ansible
+EXTERNAL_IP=$(cat /tmp/droplet-ip.txt)
+# copy deploy scripts to virtual machine
+scp ./scripts/build-custom-oci-image.sh ./scripts/deploy-custom-oci-image.sh debian@$EXTERNAL_IP:/tmp
+# build app custom OCI image + deploy app custom OCI image as argocd app through helm charts
+ssh -t debian@$EXTERNAL_IP 'bash /tmp/build-custom-oci-image.sh && bash /tmp/deploy-custom-oci-image.sh'
 ```
 
 ## Tunneling
