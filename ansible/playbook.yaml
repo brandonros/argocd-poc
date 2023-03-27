@@ -164,6 +164,8 @@
       ansible.builtin.shell: "kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/v2.6.7/manifests/install.yaml && kubectl wait deployment -n argocd argocd-server --for condition=Available=True --timeout=90s"
       timeout: 300
       retries: 3
+      register: result
+      until: result.rc == 0
 
     - name: get IP
       ansible.builtin.shell: "kubectl -n argocd get service/argocd-server -o=jsonpath='{.spec.clusterIP}'"
@@ -223,6 +225,8 @@
       ansible.builtin.shell: "argocd app sync kubernetes-dashboard && argocd app wait kubernetes-dashboard"
       timeout: 300
       retries: 3
+      register: result
+      until: result.rc == 0
 
     - name: apply admin user
       ansible.builtin.shell: 'echo "{{ admin_user_yaml }}" | kubectl -n kubernetes-dashboard apply -f -'
@@ -258,6 +262,8 @@
       ansible.builtin.shell: "argocd app sync docker-registry && argocd app wait docker-registry"
       timeout: 300
       retries: 3
+      register: result
+      until: result.rc == 0
 
     - name: check if registry already configured
       stat:
@@ -305,16 +311,20 @@
 
     - name: rollout
       ansible.builtin.shell: "argocd app sync elasticsearch && argocd app wait elasticsearch"
-      timeout: 600
+      timeout: 300
       retries: 3
+      register: result
+      until: result.rc == 0
 
     - name: create kibana app
       ansible.builtin.shell: 'argocd app create kibana --repo https://github.com/elastic/helm-charts.git --revision "v8.5.1" --path kibana --dest-namespace elk --dest-server https://kubernetes.default.svc --helm-set resources.requests.cpu=0 --helm-set resources.requests.memory=0'
 
     - name: rollout
       ansible.builtin.shell: "argocd app sync kibana && argocd app wait kibana"
-      timeout: 600
+      timeout: 300
       retries: 3
+      register: result
+      until: result.rc == 0
 
     - name: get password
       ansible.builtin.shell: "kubectl -n elk get secret elasticsearch-master-credentials -o json | jq -r '.data.password' | base64 -d"
@@ -337,12 +347,10 @@
   environment:
     KUBECONFIG: "{{ ansible_env.HOME }}/.kube/config"
   tasks:
-    - name: create namespace
+    - name: build app
       ansible.builtin.shell: |
         # exit on errors
         set -e
-        # load kubeconfig
-        export KUBECONFIG=~/.kube/config
         # variables
         INTERNAL_REGISTRY_URL="docker-registry.docker-registry.svc.cluster.local:5000"
         IMAGE_TAG="app:0.0.1"
@@ -398,12 +406,10 @@
   environment:
     KUBECONFIG: "{{ ansible_env.HOME }}/.kube/config"
   tasks:
-    - name: create namespace
+    - name: deploy app
       ansible.builtin.shell: |
         # exit on errors
         set -e
-        # load kubeconfig
-        export KUBECONFIG=~/.kube/config
         # get registry IP
         DOCKER_REGISTRY_CLUSTER_IP=$(kubectl -n docker-registry get service/docker-registry -o=jsonpath='{.spec.clusterIP}')
         PORT=5000
@@ -428,4 +434,3 @@
           --helm-set env.ELASTICSEARCH_URL="https://elasticsearch-master-headless.elk.svc.cluster.local:9200" \
           --upsert
         argocd app sync app && argocd app wait app
-
