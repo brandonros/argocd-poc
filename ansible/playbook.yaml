@@ -48,24 +48,19 @@
 - name: setup user
   hosts: new_droplet
   tasks:
-    - name: Ensure group "brandon" exists
-      ansible.builtin.group:
-        name: brandon
-        state: present
-
-    - name: Ensure user "brandon" exists
+    - name: Ensure user "debian" exists
       ansible.builtin.user:
-        name: brandon
+        name: debian
         shell: /bin/bash
-        groups: sudo,brandon
+        groups: sudo
         create_home: true
-        home: /home/brandon
+        home: /home/debian
         append: yes
         password: "{{ 'foobar123' | password_hash('sha512') }}"
 
     - name: add ssh key
       ansible.posix.authorized_key:
-        user: brandon
+        user: debian
         state: present
         key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
 
@@ -98,7 +93,7 @@
 - name: install k3s
   hosts: new_droplet
   become: true
-  become_user: brandon
+  become_user: debian
   environment:
     USER_KUBE_PATH: "{{ ansible_env.HOME }}/.kube"
   tasks:
@@ -139,7 +134,7 @@
 - name: install argocd-cli
   hosts: new_droplet
   become: true
-  become_user: brandon
+  become_user: debian
   tasks:
     - name: Check for binary
       ansible.builtin.command:
@@ -156,7 +151,7 @@
 - name: deploy argocd
   hosts: new_droplet
   become: true
-  become_user: brandon
+  become_user: debian
   environment:
     KUBECONFIG: "{{ ansible_env.HOME }}/.kube/config"
   tasks:
@@ -187,7 +182,7 @@
 - name: deploy kubernetes-dashboard
   hosts: new_droplet
   become: true
-  become_user: brandon
+  become_user: debian
   vars:
     admin_user_yaml: |
       apiVersion: v1
@@ -238,7 +233,7 @@
 - name: deploy docker-registry
   hosts: new_droplet
   become: true
-  become_user: brandon
+  become_user: debian
   environment:
     KUBECONFIG: "{{ ansible_env.HOME }}/.kube/config"
   tasks:
@@ -285,7 +280,7 @@
 - name: deploy elasticsearch + kibana
   hosts: new_droplet
   become: true
-  become_user: brandon
+  become_user: debian
   environment:
     KUBECONFIG: "{{ ansible_env.HOME }}/.kube/config"
   tasks:
