@@ -76,6 +76,7 @@
         pkg:
           - jq
           - git
+          - acl
 
     - name: safe upgrade
       ansible.builtin.apt:
@@ -88,6 +89,7 @@
     - name: Remove dependencies that are no longer required
       ansible.builtin.apt:
         autoremove: yes
+    
     # TODO: poweroff + powercycle here to force new freshest kernel?
 
 - name: install k3s
@@ -96,6 +98,8 @@
   become_user: debian
   environment:
     USER_KUBE_PATH: "{{ ansible_env.HOME }}/.kube"
+  vars:
+      allow_world_readable_tmpfiles: true
   tasks:
     - name: Check for kubectl binary
       ansible.builtin.command:
@@ -113,23 +117,23 @@
       ansible.builtin.shell: 'k3s kubectl config view --raw'
       become: true
       become_user: root
-      when: kubectl_check.rc != 0
       register: kubeconfig
 
     - name: print kubeconfig
-      when: kubectl_check.rc != 0
       ansible.builtin.debug:
         msg: 'kubeconfig: {{ kubeconfig.stdout }}'
-
-    - name: write to file
-      local_action: copy content="{{ kubeconfig.stdout }}" dest="/tmp/kubeconfig"
 
     - name: configure kubeconfig for user
       ansible.builtin.shell: |
         mkdir $USER_KUBE_PATH 2> /dev/null
         echo "{{ kubeconfig.stdout }}" > $USER_KUBE_PATH/config
         chmod 600 $USER_KUBE_PATH/config
-      when: kubectl_check.rc != 0
+
+    - name: write to file
+      delegate_to: localhost
+      become: true
+      become_user: "{{ lookup('env', 'USER') }}"
+      ansible.builtin.shell: 'echo "{{ kubeconfig.stdout }}" > /tmp/kubeconfig'
 
 - name: install argocd-cli
   hosts: new_droplet
@@ -158,8 +162,10 @@
     - name: create namespace
       ansible.builtin.shell: "kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -"
 
-    - name: rollout argocd
+    - name: rollout
       ansible.builtin.shell: "kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/v2.6.7/manifests/install.yaml && kubectl wait deployment -n argocd argocd-server --for condition=Available=True --timeout=90s"
+      timeout: 300
+      retries: 3
 
     - name: get IP
       ansible.builtin.shell: "kubectl -n argocd get service/argocd-server -o=jsonpath='{.spec.clusterIP}'"
@@ -177,7 +183,10 @@
         msg: 'argocd admin password: {{ argocd_password.stdout }}'
 
     - name: write to file
-      local_action: copy content="{{ argocd_password.stdout }}" dest="/tmp/argocd-password.txt"
+      delegate_to: localhost
+      become: true
+      become_user: "{{ lookup('env', 'USER') }}"
+      ansible.builtin.shell: 'echo "{{ argocd_password.stdout }}" > /tmp/argocd-password.txt'
 
 - name: deploy kubernetes-dashboard
   hosts: new_droplet
@@ -214,7 +223,8 @@
 
     - name: rollout
       ansible.builtin.shell: 'argocd app sync kubernetes-dashboard && argocd app wait kubernetes-dashboard'
-      timeout: 180
+      timeout: 300
+      retries: 3
 
     - name: apply admin user
       ansible.builtin.shell: 'echo "{{ admin_user_yaml }}" | kubectl -n kubernetes-dashboard apply -f -'
@@ -226,9 +236,12 @@
     - name: print token
       ansible.builtin.debug:
         msg: 'kubernetes dashboard admin login token: {{ kubernetes_dashboard_token.stdout }}'
-    
+  
     - name: write to file
-      local_action: copy content="{{ kubernetes_dashboard_token.stdout }}" dest="/tmp/kubernetes-dashboard-token.txt"
+      delegate_to: localhost
+      become: true
+      become_user: "{{ lookup('env', 'USER') }}"
+      ansible.builtin.shell: 'echo "{{ kubernetes_dashboard_token.stdout }}" > /tmp/kubernetes-dashboard-token.txt'
 
 - name: deploy docker-registry
   hosts: new_droplet
@@ -245,6 +258,8 @@
 
     - name: rollout
       ansible.builtin.shell: 'argocd app sync docker-registry && argocd app wait docker-registry'
+      timeout: 300
+      retries: 3
 
     - name: check if registry already configured
       stat:
@@ -292,12 +307,16 @@
 
     - name: rollout
       ansible.builtin.shell: 'argocd app sync elasticsearch && argocd app wait elasticsearch'
+      timeout: 300
+      retries: 3
 
     - name: create kibana app
       ansible.builtin.shell: 'argocd app create kibana --repo https://github.com/elastic/helm-charts.git --revision "v8.5.1" --path kibana --dest-namespace elk --dest-server https://kubernetes.default.svc --helm-set resources.requests.cpu=0 --helm-set resources.requests.memory=0'
 
     - name: rollout
       ansible.builtin.shell: 'argocd app sync kibana && argocd app wait kibana'
+      timeout: 300
+      retries: 3
 
     - name: get password
       ansible.builtin.shell: "kubectl -n elk get secret elasticsearch-master-credentials -o json | jq -r '.data.password' | base64 -d"
@@ -308,4 +327,7 @@
         msg: 'elasticsearch password: {{ elasticsearch_password.stdout }}'
 
     - name: write to file
-      local_action: copy content="{{ argocd_password.stdout }}" dest="/tmp/elasticsearch-password.txt"
+      delegate_to: localhost
+      become: true
+      become_user: "{{ lookup('env', 'USER') }}"
+      ansible.builtin.shell: 'echo "{{ elasticsearch_password.stdout }}" > /tmp/elasticsearch-password.txt'

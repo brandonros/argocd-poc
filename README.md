@@ -22,7 +22,7 @@ echo 'export DIGITIALOCEAN_TOKEN="PASTE_TOKEN_HERE"' >> ~/.zprofile
 source ~/.zprofile
 ```
 
-## Provision droplet
+## Run Ansible playbook
 
 ```shell
 # clone git repo locally
@@ -39,9 +39,10 @@ ansible-playbook --ask-become ansible/playbook.yaml # password is foobar123
 # get digitalocean droplet external IP
 EXTERNAL_IP=$(cat /tmp/droplet-ip.txt) # created by ansible
 # copy scripts to virtual machine
-scp ./scripts/build-custom-oci-image.sh ./scripts/deploy-custom-oci-image.sh debian@$EXTERNAL_IP:/tmp
+scp ./scripts/build-custom-oci-image.sh ./scripts/deploy-custom-oci-image.sh 
 # build app custom OCI image + deploy app custom OCI image as argocd app through helm charts
-ssh -t debian@$EXTERNAL_IP 'bash /tmp/build-custom-oci-image.sh && bash ./scripts/deploy-custom-oci-image.sh'
+ssh -t debian@$EXTERNAL_IP 'bash /tmp/build-custom-oci-image.sh'
+ssh -t debian@$EXTERNAL_IP 'bash /tmp/deploy-custom-oci-image.sh'
 ```
 
 ## Tunneling
