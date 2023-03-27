@@ -33,25 +33,16 @@ cd argocd-poc
 ansible-playbook --ask-become ansible/playbook.yaml # password is foobar123
 ```
 
-## Provision application
+## Tunneling
 
 ```shell
 # get digitalocean droplet external IP from file created by ansible
 EXTERNAL_IP=$(cat /tmp/droplet-ip.txt)
-# copy deploy scripts to virtual machine
-scp ./scripts/build-custom-oci-image.sh ./scripts/deploy-custom-oci-image.sh debian@$EXTERNAL_IP:/tmp
-# build app custom OCI image + deploy app custom OCI image as argocd app through helm charts
-ssh -t debian@$EXTERNAL_IP 'bash /tmp/build-custom-oci-image.sh && bash /tmp/deploy-custom-oci-image.sh'
-```
-
-## Tunneling
-
-```shell
 ssh -L 8080:127.0.0.1:8080 debian@$EXTERNAL_IP 'bash -c "KUBECONFIG=~/.kube/config kubectl port-forward svc/argocd-server -n argocd 8080:443"' # argocd will be at https://localhost:8080 (username admin / password in /tmp/argocd-password.txt)
 ssh -L 8443:127.0.0.1:8443 debian@$EXTERNAL_IP 'bash -c "KUBECONFIG=~/.kube/config kubectl port-forward svc/kubernetes-dashboard -n kubernetes-dashboard 8443:443"' # kubernetes dashboard will be at https://localhost:8443 (token will be in /tmp/kubernetes-dashboard-token.txt)
 ssh -L 9200:127.0.0.1:9200 debian@$EXTERNAL_IP 'bash -c "KUBECONFIG=~/.kube/config kubectl port-forward svc/elasticsearch-master-headless -n elk 9200:9200"' # elasticsearch will be at https://localhost:9200 (username elastic / password in /tmp/elastic-password.txt)
 ssh -L 5601:127.0.0.1:5601 debian@$EXTERNAL_IP 'bash -c "KUBECONFIG=~/.kube/config kubectl port-forward svc/kibana-kibana -n elk 5601:5601"' # kibana will be at http://localhost:5601 (username elastic / password in /tmp/elastic-password.txt)
-ssh -L 3000:127.0.0.1:3000 debian@$EXTERNAL_IP 'bash -c "KUBECONFIG=~/.kube/config kubectl port-forward svc/test -n test 3000:3000"' # node.js express http server will be at http://localhost:3000
+ssh -L 3000:127.0.0.1:3000 debian@$EXTERNAL_IP 'bash -c "KUBECONFIG=~/.kube/config kubectl port-forward svc/app -n app 3000:3000"' # node.js express http server will be at http://localhost:3000
 ```
 
 ## Sample API request
