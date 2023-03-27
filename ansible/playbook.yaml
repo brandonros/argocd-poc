@@ -36,6 +36,9 @@
       ansible.builtin.debug:
         msg: 'droplet IP: {{ ansible_facts.droplet_ip }}'
 
+    - name: write to file
+      local_action: copy content="{{ ansible_facts.droplet_ip }}" dest="/tmp/droplet-ip.txt"
+
     - name: Add host to inventory
       ansible.builtin.add_host:
         name: "{{ ansible_facts.droplet_ip }}"
@@ -123,6 +126,9 @@
       ansible.builtin.debug:
         msg: 'kubeconfig: {{ kubeconfig.stdout }}'
 
+    - name: write to file
+      local_action: copy content="{{ kubeconfig.stdout }}" dest="/tmp/kubeconfig"
+
     - name: configure kubeconfig for user
       ansible.builtin.shell: |
         mkdir $USER_KUBE_PATH 2> /dev/null
@@ -175,6 +181,9 @@
       ansible.builtin.debug:
         msg: 'argocd admin password: {{ argocd_password.stdout }}'
 
+    - name: write to file
+      local_action: copy content="{{ argocd_password.stdout }}" dest="/tmp/argocd-password.txt"
+
 - name: deploy kubernetes-dashboard
   hosts: new_droplet
   become: true
@@ -210,6 +219,7 @@
 
     - name: rollout
       ansible.builtin.shell: 'argocd app sync kubernetes-dashboard && argocd app wait kubernetes-dashboard'
+      timeout: 180
 
     - name: apply admin user
       ansible.builtin.shell: 'echo "{{ admin_user_yaml }}" | kubectl -n kubernetes-dashboard apply -f -'
@@ -221,6 +231,9 @@
     - name: print token
       ansible.builtin.debug:
         msg: 'kubernetes dashboard admin login token: {{ kubernetes_dashboard_token.stdout }}'
+    
+    - name: write to file
+      local_action: copy content="{{ kubernetes_dashboard_token.stdout }}" dest="/tmp/kubernetes-dashboard-token.txt"
 
 - name: deploy docker-registry
   hosts: new_droplet
@@ -265,6 +278,10 @@
       ansible.builtin.shell: 'systemctl restart k3s'
       when: registry_configured.stat.exists == false
 
+    - name: sleep to allow for k3s cluster to restart
+      ansible.builtin.shell: 'sleep 30'
+      when: registry_configured.stat.exists == false
+
 - name: deploy elasticsearch + kibana
   hosts: new_droplet
   become: true
@@ -286,3 +303,14 @@
 
     - name: rollout
       ansible.builtin.shell: 'argocd app sync kibana && argocd app wait kibana'
+
+    - name: get password
+      ansible.builtin.shell: "kubectl -n elk get secret elasticsearch-master-credentials -o json | jq -r '.data.password' | base64 -d"
+      register: elasticsearch_password
+
+    - name: print password
+      ansible.builtin.debug:
+        msg: 'elasticsearch password: {{ elasticsearch_password.stdout }}'
+
+    - name: write to file
+      local_action: copy content="{{ argocd_password.stdout }}" dest="/tmp/elasticsearch-password.txt"
