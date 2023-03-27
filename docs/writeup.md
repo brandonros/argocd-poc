@@ -1,7 +1,9 @@
 ## Preface
 
 * `DigitalOcean` is a cloud computing platform that allows users to create virtual servers, also known as "Droplets". A Droplet is essentially a virtual machine that is created in DigitalOcean's infrastructure. It is a remote computer that can be accessed from anywhere with an internet connection. The droplet will be running Debian.
-* `Debian`, also known as Debian GNU/Linux, is a Linux distribution composed of free and open-source software, developed by the community-supported Debian Project.
+* `Debian`, also known as `Debian GNU/Linux`, is a Linux distribution.
+* A `Linux distribution` is a version of the Linux operating system that is created by combining the Linux kernel, which is the core of the operating system, with other software packages such as system utilities, libraries, and applications.
+* An `operating system` is a software program that manages the hardware and software resources of a computer. 
 * `Linux` is a family of open-source Unix-like operating systems based on the Linux kernel, an operating system kernel. Windows + Mac OS are 2 other popular operating systems. Linux provides a flexible, low-cost, and efficient platform for cloud computing. By using Linux, hobbyists can experiment with different configurations and environments, and take advantage of the large and active community of developers and users who support the operating system.
 * We will interface with this Linux virtual machine hosted by DigitalOcean running Debian mainly though `ssh` + a shell. A `shell` is a command-line interpreter and typical operations performed by shell scripts include file manipulation, program execution, and printing text. 
 * `ssh` (also referred to as Secure Shell) is a method for secure remote login from one computer to another. 
