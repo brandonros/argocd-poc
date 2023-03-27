@@ -30,7 +30,7 @@ git clone https://github.com/brandonros/argocd-poc.git
 # cd into repo folder
 cd argocd-poc
 # run ansible playbook from repo
-ansible-playbook --ask-become ansible/playbook.yaml # password is foobar123
+ansible-playbook -vv --ask-become ansible/playbook.yaml # password is foobar123
 ```
 
 ## Tunneling
