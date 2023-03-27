@@ -307,7 +307,7 @@
 
     - name: rollout
       ansible.builtin.shell: 'argocd app sync elasticsearch && argocd app wait elasticsearch'
-      timeout: 300
+      timeout: 600
       retries: 3
 
     - name: create kibana app
@@ -315,7 +315,7 @@
 
     - name: rollout
       ansible.builtin.shell: 'argocd app sync kibana && argocd app wait kibana'
-      timeout: 300
+      timeout: 600
       retries: 3
 
     - name: get password

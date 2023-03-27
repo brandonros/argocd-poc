@@ -9,10 +9,10 @@ IMAGE_TAG="test:0.0.1"
 REPO_URL="https://github.com/brandonros/argocd-poc.git"
 BRANCH_NAME="master"
 BUILD_CONTEXT_DIRECTORY="./test/"
-# get repo
+# clone repo to temp directory
 WORK_DIR=$(mktemp -d -p /tmp)
 git clone --depth=1 --branch "$BRANCH_NAME" "$REPO_URL" "$WORK_DIR"
-# build json overrides
+# build json overrides for kaniko pod
 OVERRIDES=$(
 cat <<EOF
 {
