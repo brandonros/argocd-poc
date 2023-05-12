@@ -20,7 +20,8 @@ git clone https://github.com/brandonros/argocd-poc.git
 # cd into repo folder
 cd argocd-poc
 # run from repo directory
-./scripts/deploy.sh
+./scripts/provision-droplet.sh
+./scripts/deploy-kubernetes-dashboard.sh
 ```
 
 ## Tunneling
