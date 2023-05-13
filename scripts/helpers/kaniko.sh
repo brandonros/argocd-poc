@@ -6,13 +6,11 @@ function kaniko_build_and_push() {
   IMAGE=$3
   DOCKERFILE=$4
   CONTEXT=$5
-  WORKSPACE_MOUNT_PATH=$6
   PIPELINE_YAML=$(cat $SCRIPT_DIR/../yaml/pipelines/kaniko-build-and-push-pipeline.yaml)
   PIPELINE_YAML=$(echo "$PIPELINE_YAML" | sed "s/{{GIT_URL}}/$GIT_URL/g")
   PIPELINE_YAML=$(echo "$PIPELINE_YAML" | sed "s/{{IMAGE}}/$IMAGE/g")
   PIPELINE_YAML=$(echo "$PIPELINE_YAML" | sed "s/{{DOCKERFILE}}/$DOCKERFILE/g")
   PIPELINE_YAML=$(echo "$PIPELINE_YAML" | sed "s/{{CONTEXT}}/$CONTEXT/g")
-  PIPELINE_YAML=$(echo "$PIPELINE_YAML" | sed "s/{{WORKSPACE_MOUNT_PATH}}/$WORKSPACE_MOUNT_PATH/g")
   COMMAND=$(cat <<EOF
     set -e
     export KUBECONFIG="/home/debian/.kube/config" # TODO: do not hardcode username but can't mix and match variables with heredoc
