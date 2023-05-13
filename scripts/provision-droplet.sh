@@ -2,8 +2,9 @@
 
 set -e
 
-. config.sh
-. digital-ocean-api.sh
+SCRIPT_DIR="$(dirname "$0")"
+. "$SCRIPT_DIR/config.sh"
+. "$SCRIPT_DIR/digitalocean-api.sh"
 
 # ensure SSH key
 echo "getting SSH key ID..."
@@ -29,9 +30,13 @@ fi
 echo "DROPLET_ID = $DROPLET_ID"
 # get droplet external IP
 echo "getting droplet external IP..."
-
-
+EXTERNAL_IP=$(digitalocean_get_droplet_external_ip_by_id "$DROPLET_ID")
 echo "EXTERNAL_IP = $EXTERNAL_IP"
+if [ "$EXTERNAL_IP" == "null" ]
+then
+  echo "failed to get EXTERNAL_IP"
+  exit 1
+fi
 # wait for host to be up by checking ssh port 22
 echo "Waiting for $EXTERNAL_IP to come online..."
 PORT=22
@@ -123,7 +128,7 @@ COMMAND=$(cat <<-'EOF'
 set -e  
 export KUBECONFIG="/home/debian/.kube/config" # TODO: do not hardcode username but can't mix and match variables with heredoc
 # tekton pipeline deploy
-kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
+kubectl create namespace tekton --dry-run=client -o yaml | kubectl apply -f -
 kubectl apply -f https://storage.googleapis.com/tekton-releases/pipeline/latest/release.yaml
 kubectl wait deployment -n tekton-pipelines tekton-pipelines-webhook --for condition=Available=True --timeout=90s
 # tekton argocd-task-sync-and-wait deploy

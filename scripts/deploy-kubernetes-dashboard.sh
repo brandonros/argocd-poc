@@ -1,12 +1,31 @@
 #!/bin/sh
 
-. config.sh
-. digital-ocean-api.sh
+set -e
 
-# get EXTERNAL_IP
+SCRIPT_DIR="$(dirname "$0")"
+. "$SCRIPT_DIR/config.sh"
+. "$SCRIPT_DIR/digitalocean-api.sh"
+
+# get droplet ID
+echo "getting droplet ID..."
 DROPLET_ID=$(digitalocean_get_droplet_id_by_name "$DROPLET_NAME")
+if [ "$DROPLET_ID" == "null" ]
+then
+  echo "failed to get droplet ID"
+  exit 1
+fi
+echo "DROPLET_ID = $DROPLET_ID"
+# get droplet external IP
+echo "getting droplet external IP..."
 EXTERNAL_IP=$(digitalocean_get_droplet_external_ip_by_id "$DROPLET_ID")
+echo "EXTERNAL_IP = $EXTERNAL_IP"
+if [ "$EXTERNAL_IP" == "null" ]
+then
+  echo "failed to get EXTERNAL_IP"
+  exit 1
+fi
 # droplet deploy argocd app (kubernetes-dashboard)
+echo "deploying argocd app"
 COMMAND=$(cat <<-'EOF'
 set -e
 export KUBECONFIG="/home/debian/.kube/config" # TODO: do not hardcode username but can't mix and match variables with heredoc
@@ -73,8 +92,9 @@ INNER_EOF
 echo "$YAML" | kubectl apply -f -
 EOF
 )
-ssh -debian@$EXTERNAL_IP "$COMMAND"
+ssh debian@$EXTERNAL_IP "$COMMAND"
 # droplet pipelinerun argocd sync + wait
+echo "deploying argocd sync + wait pipeline run + waiting"
 COMMAND=$(cat <<-'EOF'
 set -e
 export KUBECONFIG="/home/debian/.kube/config" # TODO: do not hardcode username but can't mix and match variables with heredoc
@@ -154,5 +174,3 @@ echo "TOKEN: $TOKEN"
 EOF
 )
 ssh -t debian@$EXTERNAL_IP "$COMMAND"
-# port forward
-ssh -L 8443:127.0.0.1:8443 debian@$EXTERNAL_IP 'bash -c "KUBECONFIG=~/.kube/config kubectl port-forward svc/kubernetes-dashboard -n kubernetes-dashboard 8443:443"'
