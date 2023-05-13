@@ -32,6 +32,7 @@ spec:
     server: https://kubernetes.default.svc
     namespace: nodejs-poc-app
   project: nodejs-poc-app
+  revisionHistoryLimit: 1
   source:
     repoURL: https://github.com/brandonros/k3s-poc.git
     targetRevision: master
