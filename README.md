@@ -43,3 +43,17 @@ sudo kubefwd svc -c /tmp/kubeconfig -n monitoring -f metadata.name=kube-promethe
 sudo kubefwd svc -c /tmp/kubeconfig -n jaeger
 sudo kubefwd svc -c /tmp/kubeconfig -n kubernetes-dashboard
 ```
+
+## k3s internal Docker registry HTTP workaround
+
+```yaml
+# export KUBECONFIG="/home/debian/.kube/config" 
+# DOCKER_REGISTRY_IP=$(kubectl -n docker-registry get service/docker-registry -o=jsonpath='{.spec.clusterIP}')
+# sudo echo "10.43.121.9 docker-registry" >> /etc/hosts
+# sudo nano /etc/rancher/k3s/registries.yaml
+mirrors:
+  "docker-registry:5000":
+    endpoint:
+      - "http://docker-registry:5000"
+# sudo systemctl restart k3s
+```

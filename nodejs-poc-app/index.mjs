@@ -1,6 +1,7 @@
 import express from 'express'
 import winston from 'winston'
 import { NodeSDK } from '@opentelemetry/sdk-node'
+import { context, trace } from '@opentelemetry/api'
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node'
 import { PrometheusExporter } from '@opentelemetry/exporter-prometheus'
 import { ZipkinExporter } from '@opentelemetry/exporter-zipkin'
@@ -41,7 +42,23 @@ const sdk = new NodeSDK({
 sdk.start()
 // start express server
 const app = express()
+app.use((req, rex, next) => {
+  logger.info({
+    message: 'request',
+    url: req.url,
+    method: req.method
+  })
+  next()
+})
 app.use(express.json())
+app.use((req, res, next) => {
+  const span = trace.getSpan(context.active())
+  if (span) {
+    const traceId = span.context().traceId
+    res.setHeader('x-trace-id', traceId)
+  }
+  next()
+})
 app.get('/ping', (req, res) => res.send('pong'))
 app.listen(process.env.PORT || 3000)
 logger.info({
