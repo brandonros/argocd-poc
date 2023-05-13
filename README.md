@@ -26,6 +26,8 @@ cd argocd-poc
 ./scripts/deploy-and-sync-argocd-app.sh "loki-stack"
 ./scripts/deploy-and-sync-argocd-app.sh "redis"
 ./scripts/deploy-and-sync-argocd-app.sh "kube-prometheus-stack"
+
+./scripts/build-and-push-app.sh "test:0.0.1" "dockerfile" "context" "workspace_mount_path"
 ```
 
 ## Tunneling

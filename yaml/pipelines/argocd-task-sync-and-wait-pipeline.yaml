@@ -22,9 +22,9 @@ metadata:
   namespace: tekton
 spec:
   tasks:
-    - name: sync-application
+    - name: argocd-sync-and-wait-task
       taskRef:
-        name: argocd-task-sync-and-wait
+        name: argocd-task-sync-and-wait # from https://raw.githubusercontent.com/tektoncd/catalog/main/task/argocd-task-sync-and-wait/0.2/argocd-task-sync-and-wait.yaml
       params:
         - name: argocd-version
           value: v2.6.7

@@ -125,8 +125,10 @@ export KUBECONFIG="/home/debian/.kube/config" # TODO: do not hardcode username b
 kubectl create namespace tekton --dry-run=client -o yaml | kubectl apply -f -
 kubectl apply -f https://storage.googleapis.com/tekton-releases/pipeline/latest/release.yaml
 kubectl wait deployment -n tekton-pipelines tekton-pipelines-webhook --for condition=Available=True --timeout=90s
-# tekton argocd-task-sync-and-wait deploy
+# deploy tekton tasks
 kubectl apply -n tekton -f https://raw.githubusercontent.com/tektoncd/catalog/main/task/argocd-task-sync-and-wait/0.2/argocd-task-sync-and-wait.yaml
+kubectl apply -n tekton -f https://raw.githubusercontent.com/tektoncd/catalog/main/task/kaniko/0.6/kaniko.yaml
+kubectl apply -n tekton -f https://raw.githubusercontent.com/tektoncd/catalog/main/task/git-clone/0.9/git-clone.yaml
 EOF
 )
 ssh debian@$EXTERNAL_IP "$COMMAND"
