@@ -40,7 +40,7 @@ spec:
       values: |
         image:
           repository: docker-registry:5000 # weird workaround for external vs internal k8s dns
-          tag: nodejs-poc-app:0.0.1
+          tag: nodejs-poc-app:0.0.2
         env:
           SERVICE_NAME: nodejs-poc-app
           ZIPKIN_EXPORTER_URL: http://jaeger-jaeger-all-in-one.jaeger.svc:9411/api/v2/spans

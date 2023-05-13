@@ -56,6 +56,21 @@ spec:
               type: jaeger
               url: http://jaeger-jaeger-all-in-one.jaeger.svc:16686
               access: proxy
+        prometheus:
+          additionalServiceMonitors:
+            - name: nodejs-poc-app
+              namespace: monitoring
+              selector:
+                matchLabels:
+                  name: nodejs-poc-app
+              namespaceSelector:
+                matchNames:
+                  - nodejs-poc-app
+              endpoints:
+                - path: /metrics
+                  targetPort: 9464
+                  scheme: http
+                  scrapeTimeout: 10s
   syncPolicy:
     syncOptions:
     - ServerSideApply=true
