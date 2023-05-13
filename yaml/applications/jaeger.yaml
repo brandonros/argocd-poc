@@ -1,0 +1,41 @@
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: jaeger
+  labels:
+    name: jaeger
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: jaeger
+  namespace: argocd
+spec:
+  clusterResourceWhitelist:
+  - group: '*'
+    kind: '*'
+  destinations:
+  - namespace: jaeger
+    server: https://kubernetes.default.svc
+  orphanedResources:
+    warn: false
+  sourceRepos:
+  - '*'
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: jaeger
+  namespace: argocd
+spec:
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: jaeger
+  project: jaeger
+  source:
+    repoURL: https://github.com/hansehe/jaeger-all-in-one.git
+    targetRevision: master
+    path: ./helm/jaeger-all-in-one/
+    helm:
+      values: |
+        enableHttpZipkinCollector: true

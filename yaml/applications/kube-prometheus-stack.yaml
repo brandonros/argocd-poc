@@ -1,0 +1,61 @@
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: monitoring
+  labels:
+    name: monitoring
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: kube-prometheus-stack
+  namespace: argocd
+spec:
+  clusterResourceWhitelist:
+  - group: '*'
+    kind: '*'
+  destinations:
+  - namespace: monitoring
+    server: https://kubernetes.default.svc
+  - namespace: kube-system
+    server: https://kubernetes.default.svc
+  orphanedResources:
+    warn: false
+  sourceRepos:
+  - '*'
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kube-prometheus-stack
+  namespace: argocd
+spec:
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  project: kube-prometheus-stack
+  source:
+    repoURL: https://github.com/prometheus-community/helm-charts.git
+    targetRevision: main
+    path: ./charts/kube-prometheus-stack
+    helm:
+      values: |
+        grafana:
+          sidecar:
+            datasources:
+              defaultDatasourceEnabled: false
+          additionalDataSources:
+            - name: prometheus
+              type: prometheus
+              url: http://kube-prometheus-stack-prometheus.monitoring.svc:9090
+              isDefault: true
+            - name: loki
+              type: loki
+              url: http://loki-stack.monitoring.svc:3100
+            - name: jaeger
+              type: jaeger
+              url: http://jaeger-jaeger-all-in-one.jaeger.svc:16686
+              access: proxy
+  syncPolicy:
+    syncOptions:
+    - ServerSideApply=true

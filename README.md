@@ -21,11 +21,19 @@ git clone https://github.com/brandonros/argocd-poc.git
 cd argocd-poc
 # run from repo directory
 ./scripts/provision-droplet.sh
-./scripts/deploy-kubernetes-dashboard.sh
+./scripts/deploy-and-sync-argocd-app.sh "kubernetes-dashboard"
+./scripts/deploy-and-sync-argocd-app.sh "jaeger"
+./scripts/deploy-and-sync-argocd-app.sh "loki-stack"
+./scripts/deploy-and-sync-argocd-app.sh "redis"
+./scripts/deploy-and-sync-argocd-app.sh "kube-prometheus-stack"
 ```
 
 ## Tunneling
 
 ```shell
-# TODO: spell out https://github.com/pixel-point/kube-forwarder config + usage
+brew install txn2/tap/kubefwd
+brew install autossh
+./scripts/tunnel-cluster.sh
+sudo kubefwd svc -c /tmp/kubeconfig -n monitoring -f metadata.name=kube-prometheus-stack-grafana
+sudo kubefwd svc -c /tmp/kubeconfig -n jaeger
 ```

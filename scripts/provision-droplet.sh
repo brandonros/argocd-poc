@@ -4,7 +4,7 @@ set -e
 
 SCRIPT_DIR="$(dirname "$0")"
 . "$SCRIPT_DIR/config.sh"
-. "$SCRIPT_DIR/digitalocean-api.sh"
+. "$SCRIPT_DIR/helpers/digitalocean.sh"
 
 # ensure SSH key
 echo "getting SSH key ID..."
@@ -30,13 +30,13 @@ fi
 echo "DROPLET_ID = $DROPLET_ID"
 # get droplet external IP
 echo "getting droplet external IP..."
-EXTERNAL_IP=$(digitalocean_get_droplet_external_ip_by_id "$DROPLET_ID")
-echo "EXTERNAL_IP = $EXTERNAL_IP"
+EXTERNAL_IP=$(digitalocean_get_droplet_external_ip_by_name "$NAME")
 if [ "$EXTERNAL_IP" == "null" ]
 then
   echo "failed to get EXTERNAL_IP"
   exit 1
 fi
+echo "EXTERNAL_IP = $EXTERNAL_IP"
 # wait for host to be up by checking ssh port 22
 echo "Waiting for $EXTERNAL_IP to come online..."
 PORT=22
@@ -88,7 +88,7 @@ EOF
 ssh root@$EXTERNAL_IP "$COMMAND"
 # TODO: poweroff + powercycle here to force new freshest kernel?
 # droplet install k3s if not already installed
-COMMAND=$(cat <<-'EOF'
+COMMAND=$(cat <<EOF
 set -e
 # Check for kubectl binary
 if ! command -v kubectl &> /dev/null
@@ -97,34 +97,28 @@ then
   curl -sfL https://get.k3s.io | sh -
 fi
 # write user kubeconfig if not already written
-USER_KUBE_PATH="/home/debian/.kube" # TODO: do not hardcode username but can't mix and match variables with heredoc
-if [ ! -f "$USER_KUBE_PATH/config" ]
+if [ ! -f "/home/$USERNAME/.kube/config" ]
 then
-  KUBECONFIG=$(sudo k3s kubectl config view --raw)
-  # Define user kube path (replace with the actual path)
-  # Configure kubeconfig for user
-  mkdir -p "$USER_KUBE_PATH"
-  echo "$KUBECONFIG" > "$USER_KUBE_PATH/config"
-  chmod 600 "$USER_KUBE_PATH/config"
+  KUBECONFIG=\$(sudo k3s kubectl config view --raw)
+  mkdir -p "/home/$USERNAME/.kube"
+  echo "\$KUBECONFIG" > "/home/$USERNAME/.kube/config"
+  chmod 600 "/home/$USERNAME/.kube/config"
 fi
 EOF
 )
 ssh -t debian@$EXTERNAL_IP "$COMMAND" # allocate tty for sudo in k3s sh pipe
 # droplet deploy argocd
-COMMAND=$(cat <<-'EOF'
+COMMAND=$(cat <<EOF
 set -e
 export KUBECONFIG="/home/debian/.kube/config" # TODO: do not hardcode username but can't mix and match variables with heredoc
 kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
 kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/v2.6.7/manifests/install.yaml
 kubectl wait deployment -n argocd argocd-server --for condition=Available=True --timeout=90s
-ARGOCD_PASSWORD=$(kubectl -n argocd get secret argocd-initial-admin-secret -o json | jq -r '.data.password' | base64 -d)
-echo "ARGOCD_USERNAME: admin"
-echo "ARGOCD_PASSWORD: $ARGOCD_PASSWORD"
 EOF
 )
 ssh debian@$EXTERNAL_IP "$COMMAND"
 # droplet deploy tekton
-COMMAND=$(cat <<-'EOF'
+COMMAND=$(cat <<EOF
 set -e  
 export KUBECONFIG="/home/debian/.kube/config" # TODO: do not hardcode username but can't mix and match variables with heredoc
 # tekton pipeline deploy

@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-env-configmap
+  namespace: tekton
+data:
+  ARGOCD_SERVER: argocd-server.argocd.svc:443
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: argocd-env-secret
+  namespace: tekton
+stringData:
+  ARGOCD_USERNAME: admin
+  ARGOCD_PASSWORD: {{ARGOCD_PASSWORD}}
+---
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: argocd-sync-and-wait-pipeline
+  namespace: tekton
+spec:
+  tasks:
+    - name: sync-application
+      taskRef:
+        name: argocd-task-sync-and-wait
+      params:
+        - name: argocd-version
+          value: v2.6.7
+        - name: application-name
+          value: {{ARGOCD_APPLICATION_NAME}}
+---
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  name: argocd-sync-and-wait-pipelinerun
+  namespace: tekton
+spec:
+  pipelineRef:
+    name: argocd-sync-and-wait-pipeline

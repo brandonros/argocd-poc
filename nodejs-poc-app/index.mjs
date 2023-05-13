@@ -1,27 +1,60 @@
 import express from 'express'
-import ElasticsearchBulkIndexer from 'elasticsearch-bulk-indexer'
+import winston from 'winston'
+import { NodeSDK } from '@opentelemetry/sdk-node'
+import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node'
+import { PrometheusExporter } from '@opentelemetry/exporter-prometheus'
+import { ZipkinExporter } from '@opentelemetry/exporter-zipkin'
+import { HttpInstrumentation } from '@opentelemetry/instrumentation-http'
+import { ExpressInstrumentation } from '@opentelemetry/instrumentation-express'
 
+// logger
+const logger = winston.createLogger({
+  level: 'debug',
+  format: winston.format.json(),
+  defaultMeta: { service: process.env.SERVICE_NAME },
+  transports: [
+    new winston.transports.Console({
+      format: winston.format.combine(
+        winston.format.timestamp(),
+        winston.format.json()
+      )
+    })
+  ]
+})
+// start metrics
+const sdk = new NodeSDK({
+  traceExporter: new ZipkinExporter({
+    serviceName: process.env.SERVICE_NAME,
+    url: process.env.ZIPKIN_EXPORTER_URL
+  }),
+  metricReader: new PrometheusExporter({ startServer: true, port: process.env.METRICS_PORT || 9464 }, () => {
+    logger.info({
+      message: 'Prometheus metrics server started on port 9464'
+    })
+  }),
+  instrumentations: [
+    getNodeAutoInstrumentations(),
+    new HttpInstrumentation(),
+    new ExpressInstrumentation()
+  ]
+})
+sdk.start()
+// start express server
 const app = express()
 app.use(express.json())
-app.post('/index', async (req, res) => {
-  try {
-    const elasticsearchUsername = process.env.ELASTICSEARCH_USERNAME
-    const elasticsearchPassword = process.env.ELASTICSEARCH_PASSWORD
-    const elasticsearchUrl = process.env.ELASTICSEARCH_URL
-    const indexerChunkSize = 1
-    const elasticsearchBulkIndexer = new ElasticsearchBulkIndexer(
-      elasticsearchUsername,
-      elasticsearchPassword,
-      elasticsearchUrl,
-      indexerChunkSize
-    )
-    const { indexName, messageId, message } = req.body
-    await elasticsearchBulkIndexer.index(indexName, messageId, message)
-    await elasticsearchBulkIndexer.flush()
-    res.send('ok')
-  } catch (err) {
-    res.status(500).send(err)
-  }
-})
 app.get('/ping', (req, res) => res.send('pong'))
 app.listen(process.env.PORT || 3000)
+logger.info({
+  message: 'Express API server listening...'
+})
+// gracefully shut down the SDK on process exit
+process.on('SIGTERM', () => {
+  sdk.shutdown()
+    .catch((err) => {
+      logger.error({
+        message: 'failed to cleanly shutdown metrics',
+        error: err.toString()
+      })
+    })
+    .finally(() => process.exit(0))
+})

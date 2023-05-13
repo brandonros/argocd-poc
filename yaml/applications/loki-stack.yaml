@@ -1,0 +1,38 @@
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: monitoring
+  labels:
+    name: monitoring
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: loki-stack
+  namespace: argocd
+spec:
+  clusterResourceWhitelist:
+  - group: '*'
+    kind: '*'
+  destinations:
+  - namespace: monitoring
+    server: https://kubernetes.default.svc
+  orphanedResources:
+    warn: false
+  sourceRepos:
+  - '*'
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: loki-stack
+  namespace: argocd
+spec:
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  project: loki-stack
+  source:
+    repoURL: https://github.com/grafana/helm-charts.git
+    targetRevision: main
+    path: ./charts/loki-stack

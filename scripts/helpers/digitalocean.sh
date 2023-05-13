@@ -32,14 +32,14 @@ function digitalocean_get_droplet_id_by_name() {
   fi
 }
 
-function digitalocean_get_droplet_external_ip_by_id() {
-  ID=$1
+function digitalocean_get_droplet_external_ip_by_name() {
+  NAME=$1
   DROPLETS=$(curl --fail \
     -X GET \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer $DIGITALOCEAN_TOKEN" \
     "https://api.digitalocean.com/v2/droplets")
-  EXTERNAL_IP=$(echo "$DROPLETS" | jq --argjson ID "$ID" -r '.droplets[] | select(.id==$ID) | .networks.v4[] | select(.type=="public") | .ip_address')
+  EXTERNAL_IP=$(echo "$DROPLETS" | jq --arg NAME "$NAME" -r '.droplets[] | select(.name==$NAME) | .networks.v4[] | select(.type=="public") | .ip_address')
   if [ -z "$EXTERNAL_IP" ]
   then
     echo "null"

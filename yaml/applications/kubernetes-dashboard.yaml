@@ -1,0 +1,57 @@
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: kubernetes-dashboard
+  labels:
+    name: kubernetes-dashboard
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: kubernetes-dashboard
+  namespace: argocd
+spec:
+  clusterResourceWhitelist:
+  - group: '*'
+    kind: '*'
+  destinations:
+  - namespace: kubernetes-dashboard
+    server: https://kubernetes.default.svc
+  orphanedResources:
+    warn: false
+  sourceRepos:
+  - '*'
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kubernetes-dashboard
+  namespace: argocd
+spec:
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kubernetes-dashboard
+  project: kubernetes-dashboard
+  source:
+    repoURL: https://github.com/kubernetes/dashboard.git
+    targetRevision: master
+    path: ./charts/helm-chart/kubernetes-dashboard/
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: admin-user
+  namespace: kubernetes-dashboard
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: admin-user
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- kind: ServiceAccount
+  name: admin-user
+  namespace: kubernetes-dashboard

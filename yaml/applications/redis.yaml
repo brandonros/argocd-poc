@@ -1,0 +1,38 @@
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: redis
+  labels:
+    name: redis
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: redis
+  namespace: argocd
+spec:
+  clusterResourceWhitelist:
+  - group: '*'
+    kind: '*'
+  destinations:
+  - namespace: redis
+    server: https://kubernetes.default.svc
+  orphanedResources:
+    warn: false
+  sourceRepos:
+  - '*'
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: redis
+  namespace: argocd
+spec:
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: redis
+  project: redis
+  source:
+    repoURL: https://github.com/bitnami/charts.git
+    targetRevision: main
+    path: ./bitnami/redis
