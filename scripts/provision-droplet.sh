@@ -30,7 +30,7 @@ fi
 echo "DROPLET_ID = $DROPLET_ID"
 # get droplet external IP
 echo "getting droplet external IP..."
-EXTERNAL_IP=$(digitalocean_get_droplet_external_ip_by_name "$NAME")
+EXTERNAL_IP=$(digitalocean_get_droplet_external_ip_by_name "$DROPLET_NAME")
 if [ "$EXTERNAL_IP" == "null" ]
 then
   echo "failed to get EXTERNAL_IP"

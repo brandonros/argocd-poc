@@ -1,0 +1,48 @@
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: nodejs-poc-app
+  labels:
+    name: nodejs-poc-app
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: nodejs-poc-app
+  namespace: argocd
+spec:
+  clusterResourceWhitelist:
+  - group: '*'
+    kind: '*'
+  destinations:
+  - namespace: nodejs-poc-app
+    server: https://kubernetes.default.svc
+  orphanedResources:
+    warn: false
+  sourceRepos:
+  - '*'
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: nodejs-poc-app
+  namespace: argocd
+spec:
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: nodejs-poc-app
+  project: nodejs-poc-app
+  source:
+    repoURL: https://github.com/brandonros/k3s-poc.git
+    targetRevision: master
+    path: ./nodejs-poc-app/helm/
+    helm:
+      values: |
+        image:
+          repository: docker-registry:5000 # weird workaround for external vs internal k8s dns
+          tag: nodejs-poc-app:0.0.1
+        env:
+          SERVICE_NAME: nodejs-poc-app
+          ZIPKIN_EXPORTER_URL: http://jaeger-jaeger-all-in-one.jaeger.svc:9411/api/v2/spans
+          METRICS_PORT: 9464
+          PORT: 3000

@@ -16,6 +16,7 @@ then
   exit 1
 fi
 # get token
+echo "getting kubernetes dashboard token"
 COMMAND=$(cat <<EOF
 export KUBECONFIG="/home/debian/.kube/config"
 kubectl -n kubernetes-dashboard create token admin-user

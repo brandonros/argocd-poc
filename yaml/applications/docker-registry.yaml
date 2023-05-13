@@ -1,0 +1,38 @@
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: docker-registry
+  labels:
+    name: docker-registry
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: docker-registry
+  namespace: argocd
+spec:
+  clusterResourceWhitelist:
+  - group: '*'
+    kind: '*'
+  destinations:
+  - namespace: docker-registry
+    server: https://kubernetes.default.svc
+  orphanedResources:
+    warn: false
+  sourceRepos:
+  - '*'
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: docker-registry
+  namespace: argocd
+spec:
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: docker-registry
+  project: docker-registry
+  source:
+    repoURL: https://github.com/twuni/docker-registry.helm.git
+    targetRevision: d74c33abd95567d1641fbfe68f2db85b6135b064
+    path: .

@@ -21,13 +21,16 @@ git clone https://github.com/brandonros/argocd-poc.git
 cd argocd-poc
 # run from repo directory
 ./scripts/provision-droplet.sh
+./scripts/get-kubernetes-dashboard-token.sh
 ./scripts/deploy-and-sync-argocd-app.sh "kubernetes-dashboard"
 ./scripts/deploy-and-sync-argocd-app.sh "jaeger"
 ./scripts/deploy-and-sync-argocd-app.sh "loki-stack"
 ./scripts/deploy-and-sync-argocd-app.sh "redis"
 ./scripts/deploy-and-sync-argocd-app.sh "kube-prometheus-stack"
+./scripts/deploy-and-sync-argocd-app.sh "docker-registry"
 
-./scripts/build-and-push-app.sh "https://github.com/brandonros/k3s-poc.git" "nodejs-poc-app:0.0.1" "./Dockerfile" "./nodejs-poc-app"
+./scripts/build-and-push-app.sh "https://github.com/brandonros/k3s-poc.git" "docker-registry.docker-registry.svc.cluster.local:5000/nodejs-poc-app:0.0.1" "./Dockerfile" "./nodejs-poc-app"
+./scripts/deploy-and-sync-argocd-app.sh "nodejs-poc-app"
 ```
 
 ## Tunneling
@@ -38,4 +41,5 @@ brew install autossh
 ./scripts/tunnel-cluster.sh
 sudo kubefwd svc -c /tmp/kubeconfig -n monitoring -f metadata.name=kube-prometheus-stack-grafana
 sudo kubefwd svc -c /tmp/kubeconfig -n jaeger
+sudo kubefwd svc -c /tmp/kubeconfig -n kubernetes-dashboard
 ```
