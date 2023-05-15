@@ -15,10 +15,17 @@ then
   echo "failed to get EXTERNAL_IP"
   exit 1
 fi
+# get postgres password
+COMMAND=$(cat <<EOF
+  export KUBECONFIG="/home/debian/.kube/config"
+  kubectl -n postgresql get secret postgresql -o json | jq -r '.data["postgres-password"]' | base64 --decode
+EOF
+)
+POSTGRES_PASSWORD=$(ssh -t debian@$EXTERNAL_IP "$COMMAND")
 # run pipeline
 QUERY="SELECT 1"
 ENCODED_QUERY=$(echo "$QUERY" | base64)
-POSTGRES_CONNECTION_STRING="postgres://postgres:GmDZGeoTxb@postgresql.postgresql.svc/" # TODO: get password dynamically
+POSTGRES_CONNECTION_STRING="postgres://postgres:$POSTGRES_PASSWORD@postgresql.postgresql.svc/"
 PIPELINE_YAML=$(cat $SCRIPT_DIR/../yaml/pipelines/psql-migrate-database.yaml)
 PIPELINE_YAML=$(echo "$PIPELINE_YAML" | sed "s#{{ENCODED_QUERY}}#$ENCODED_QUERY#g")
 PIPELINE_YAML=$(echo "$PIPELINE_YAML" | sed "s#{{POSTGRES_CONNECTION_STRING}}#$POSTGRES_CONNECTION_STRING#g")

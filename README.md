@@ -1,5 +1,5 @@
 # k3s-poc
-Building + deploying OCI images + dependencies through DigitalOcean + Bash + Helm + ArgoCD + k3s + Tekton + Kaniko
+Building + deploying OCI images + dependencies through DigitalOcean + Bash + k3s + ArgoCD + Helm + ArgoCD + Tekton + Kaniko
 
 ## Pre-requisites
 
@@ -24,27 +24,27 @@ cd argocd-poc
 # run from repo directory
 ./scripts/provision-droplet.sh
 # deploy third-party infrastructure
-./scripts/deploy-and-sync-argocd-app.sh "kubernetes-dashboard"
-./scripts/deploy-and-sync-argocd-app.sh "jaeger"
-./scripts/deploy-and-sync-argocd-app.sh "loki-stack"
-./scripts/deploy-and-sync-argocd-app.sh "redis"
-./scripts/deploy-and-sync-argocd-app.sh "postgresql"
-./scripts/deploy-and-sync-argocd-app.sh "kube-prometheus-stack"
-./scripts/deploy-and-sync-argocd-app.sh "docker-registry"
-./scripts/deploy-and-sync-argocd-app.sh "windmill"
-./scripts/deploy-and-sync-argocd-app.sh "code-server"
+./scripts/run-argocd-sync-and-wait-pipeline.sh "kubernetes-dashboard"
+./scripts/run-argocd-sync-and-wait-pipeline.sh "jaeger"
+./scripts/run-argocd-sync-and-wait-pipeline.sh "loki-stack"
+./scripts/run-argocd-sync-and-wait-pipeline.sh "redis"
+./scripts/run-argocd-sync-and-wait-pipeline.sh "postgresql"
+./scripts/run-argocd-sync-and-wait-pipeline.sh "kube-prometheus-stack"
+./scripts/run-argocd-sync-and-wait-pipeline.sh "docker-registry"
+./scripts/run-argocd-sync-and-wait-pipeline.sh "windmill"
+./scripts/run-argocd-sync-and-wait-pipeline.sh "code-server"
 # build internal apps
-./scripts/build-and-push-app.sh "https://github.com/brandonros/k3s-poc.git" "docker-registry.docker-registry.svc.cluster.local:5000/nodejs-poc-app:latest" "./Dockerfile" "./apps/nodejs-poc-app"
-./scripts/build-and-push-app.sh "https://github.com/brandonros/k3s-poc.git" "docker-registry.docker-registry.svc.cluster.local:5000/rust-poc-app:latest" "./Dockerfile" "./apps/rust-poc-app"
-./scripts/build-and-push-app.sh "https://github.com/brandonros/k3s-poc.git" "docker-registry.docker-registry.svc.cluster.local:5000/java-poc-app:latest" "./Dockerfile" "./apps/java-poc-app"
-./scripts/build-and-push-app.sh "https://github.com/brandonros/k3s-poc.git" "docker-registry.docker-registry.svc.cluster.local:5000/dotnet-poc-app:latest" "./Dockerfile" "./apps/rust-poc-app"
+./scripts/run-kaniko-build-and-push-pipeline.sh "https://github.com/brandonros/k3s-poc.git" "docker-registry.docker-registry.svc.cluster.local:5000/nodejs-poc-app:latest" "./Dockerfile" "./apps/nodejs-poc-app"
+./scripts/run-kaniko-build-and-push-pipeline.sh "https://github.com/brandonros/k3s-poc.git" "docker-registry.docker-registry.svc.cluster.local:5000/rust-poc-app:latest" "./Dockerfile" "./apps/rust-poc-app"
+./scripts/run-kaniko-build-and-push-pipeline.sh "https://github.com/brandonros/k3s-poc.git" "docker-registry.docker-registry.svc.cluster.local:5000/java-poc-app:latest" "./Dockerfile" "./apps/java-poc-app"
+./scripts/run-kaniko-build-and-push-pipeline.sh "https://github.com/brandonros/k3s-poc.git" "docker-registry.docker-registry.svc.cluster.local:5000/dotnet-poc-app:latest" "./Dockerfile" "./apps/rust-poc-app"
 # deploy internal apps
-./scripts/deploy-and-sync-argocd-app.sh "nodejs-poc-app"
-./scripts/deploy-and-sync-argocd-app.sh "rust-poc-app"
-./scripts/deploy-and-sync-argocd-app.sh "java-poc-app"
-./scripts/deploy-and-sync-argocd-app.sh "dotnet-poc-app"
+./scripts/run-argocd-sync-and-wait-pipeline.sh "nodejs-poc-app"
+./scripts/run-argocd-sync-and-wait-pipeline.sh "rust-poc-app"
+./scripts/run-argocd-sync-and-wait-pipeline.sh "java-poc-app"
+./scripts/run-argocd-sync-and-wait-pipeline.sh "dotnet-poc-app"
 # migrate database
-./scripts/migrate-database.sh
+./scripts/run-psql-migration-database-pipeline.sh
 ```
 
 ## Tunneling
