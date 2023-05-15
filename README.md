@@ -32,10 +32,10 @@ cd argocd-poc
 ./scripts/deploy-and-sync-argocd-app.sh "windmill"
 ./scripts/deploy-and-sync-argocd-app.sh "code-server"
 # build internal apps
-./scripts/build-and-push-app.sh "https://github.com/brandonros/k3s-poc.git" "docker-registry.docker-registry.svc.cluster.local:5000/nodejs-poc-app:latest" "./Dockerfile" "./nodejs-poc-app"
-./scripts/build-and-push-app.sh "https://github.com/brandonros/k3s-poc.git" "docker-registry.docker-registry.svc.cluster.local:5000/rust-poc-app:latest" "./Dockerfile" "./rust-poc-app"
-./scripts/build-and-push-app.sh "https://github.com/brandonros/k3s-poc.git" "docker-registry.docker-registry.svc.cluster.local:5000/java-poc-app:latest" "./Dockerfile" "./java-poc-app"
-./scripts/build-and-push-app.sh "https://github.com/brandonros/k3s-poc.git" "docker-registry.docker-registry.svc.cluster.local:5000/dotnet-poc-app:latest" "./Dockerfile" "./rust-poc-app"
+./scripts/build-and-push-app.sh "https://github.com/brandonros/k3s-poc.git" "docker-registry.docker-registry.svc.cluster.local:5000/nodejs-poc-app:latest" "./Dockerfile" "./apps/nodejs-poc-app"
+./scripts/build-and-push-app.sh "https://github.com/brandonros/k3s-poc.git" "docker-registry.docker-registry.svc.cluster.local:5000/rust-poc-app:latest" "./Dockerfile" "./apps/rust-poc-app"
+./scripts/build-and-push-app.sh "https://github.com/brandonros/k3s-poc.git" "docker-registry.docker-registry.svc.cluster.local:5000/java-poc-app:latest" "./Dockerfile" "./apps/java-poc-app"
+./scripts/build-and-push-app.sh "https://github.com/brandonros/k3s-poc.git" "docker-registry.docker-registry.svc.cluster.local:5000/dotnet-poc-app:latest" "./Dockerfile" "./apps/rust-poc-app"
 # deploy internal apps
 ./scripts/deploy-and-sync-argocd-app.sh "nodejs-poc-app"
 ./scripts/deploy-and-sync-argocd-app.sh "rust-poc-app"

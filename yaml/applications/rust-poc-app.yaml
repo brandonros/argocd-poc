@@ -36,7 +36,7 @@ spec:
   source:
     repoURL: https://github.com/brandonros/k3s-poc.git
     targetRevision: master
-    path: ./helm/
+    path: ./apps/helm/
     helm:
       values: |
         nameOverride: rust-poc-app
