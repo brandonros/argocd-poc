@@ -1,5 +1,8 @@
 #!/bin/sh
 
+SCRIPT_DIR=$(dirname "${BASH_SOURCE[0]}")
+. "$SCRIPT_DIR/tekton.sh"
+
 function kaniko_build_and_push() {
   EXTERNAL_IP=$1
   GIT_URL=$2
