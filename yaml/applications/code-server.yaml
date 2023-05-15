@@ -1,0 +1,38 @@
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: code-server
+  labels:
+    name: code-server
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: code-server
+  namespace: argocd
+spec:
+  clusterResourceWhitelist:
+  - group: '*'
+    kind: '*'
+  destinations:
+  - namespace: code-server
+    server: https://kubernetes.default.svc
+  orphanedResources:
+    warn: false
+  sourceRepos:
+  - '*'
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: code-server
+  namespace: argocd
+spec:
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: code-server
+  project: code-server
+  source:
+    repoURL: https://github.com/coder/code-server.git
+    targetRevision: main
+    path: ./ci/helm-chart

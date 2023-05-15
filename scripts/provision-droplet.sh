@@ -88,8 +88,9 @@ EOF
 ssh root@$EXTERNAL_IP "$COMMAND"
 # TODO: poweroff + powercycle here to force new freshest kernel?
 # droplet install k3s if not already installed
-COMMAND=$(cat <<EOF
+COMMAND=$(cat <<'EOF'
 set -e
+export USERNAME="debian" # TODO: do not hardcode, do sed {{}} templating?
 # Check for kubectl binary
 if ! command -v kubectl &> /dev/null
 then
@@ -99,9 +100,9 @@ fi
 # write user kubeconfig if not already written
 if [ ! -f "/home/$USERNAME/.kube/config" ]
 then
-  KUBECONFIG=\$(sudo k3s kubectl config view --raw)
+  KUBECONFIG=$(sudo k3s kubectl config view --raw)
   mkdir -p "/home/$USERNAME/.kube"
-  echo "\$KUBECONFIG" > "/home/$USERNAME/.kube/config"
+  echo "$KUBECONFIG" > "/home/$USERNAME/.kube/config"
   chmod 600 "/home/$USERNAME/.kube/config"
 fi
 EOF

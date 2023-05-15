@@ -30,6 +30,7 @@ cd argocd-poc
 ./scripts/deploy-and-sync-argocd-app.sh "kube-prometheus-stack"
 ./scripts/deploy-and-sync-argocd-app.sh "docker-registry"
 ./scripts/deploy-and-sync-argocd-app.sh "windmill"
+./scripts/deploy-and-sync-argocd-app.sh "code-server"
 # build internal apps
 ./scripts/build-and-push-app.sh "https://github.com/brandonros/k3s-poc.git" "docker-registry.docker-registry.svc.cluster.local:5000/nodejs-poc-app:latest" "./Dockerfile" "./nodejs-poc-app"
 ./scripts/build-and-push-app.sh "https://github.com/brandonros/k3s-poc.git" "docker-registry.docker-registry.svc.cluster.local:5000/rust-poc-app:latest" "./Dockerfile" "./rust-poc-app"
@@ -46,12 +47,15 @@ cd argocd-poc
 brew install txn2/tap/kubefwd
 brew install autossh
 ./scripts/tunnel-cluster.sh
+# infrastructure
 sudo kubefwd svc -c /tmp/kubeconfig -n monitoring -f metadata.name=kube-prometheus-stack-grafana
 sudo kubefwd svc -c /tmp/kubeconfig -n jaeger
 sudo kubefwd svc -c /tmp/kubeconfig -n kubernetes-dashboard
 sudo kubefwd svc -c /tmp/kubeconfig -n postgresql
 sudo kubefwd svc -c /tmp/kubeconfig -n windmill
 sudo kubefwd svc -c /tmp/kubeconfig -n argocd -f metadata.name=argocd-server
+sudo kubefwd svc -c /tmp/kubeconfig -n code-server
+# apps
 sudo kubefwd svc -c /tmp/kubeconfig -n nodejs-poc-app
 sudo kubefwd svc -c /tmp/kubeconfig -n rust-poc-app
 ```
