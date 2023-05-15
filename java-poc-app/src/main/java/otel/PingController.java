@@ -1,19 +1,19 @@
 package otel;
 
-import java.util.Optional;
-import java.util.concurrent.ThreadLocalRandom;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class PingController {
   private static final Logger logger = LoggerFactory.getLogger(PingController.class);
 
-  @GetMapping("/ping")
-  public String ping() {
-    return "pong";
+  @RequestMapping(method = RequestMethod.GET, path = "/ping")
+  public ResponseEntity<String> getPing() {
+    logger.info("ping");
+    return ResponseEntity.ok("pong");
   }
 }

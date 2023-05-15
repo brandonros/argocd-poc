@@ -45,4 +45,6 @@ spec:
         env:
           OTEL_TRACES_EXPORTER: zipkin
           OTEL_EXPORTER_ZIPKIN_ENDPOINT: http://jaeger-jaeger-all-in-one.jaeger.svc:9411/api/v2/spans
+          OTEL_METRICS_EXPORTER: none # TODO
+          OTEL_RESOURCE_ATTRIBUTES: service.name=java-poc-app
           PORT: 3000 # not actually used

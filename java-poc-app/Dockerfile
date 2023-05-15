@@ -9,4 +9,4 @@ FROM openjdk:17-jdk-slim AS runtime
 RUN mkdir /app
 COPY --from=build /home/gradle/src/build/libs/src.jar /app/spring-boot-application.jar
 COPY --from=build /home/gradle/src/opentelemetry-javaagent.jar /app/opentelemetry-javaagent.jar
-ENTRYPOINT ["java", "-javaagent:/app/opentelemetry-javaagent.jar", "-Dserver.port=3000", "-jar", "/app/spring-boot-application.jar"]
+ENTRYPOINT ["java", "-javaagent:/app/opentelemetry-javaagent.jar", "-Dserver.port=3000", "-Dspring.profiles.active=json-logging", "-jar", "/app/spring-boot-application.jar"]
