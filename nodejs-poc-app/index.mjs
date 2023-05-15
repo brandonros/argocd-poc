@@ -1,77 +1,65 @@
-import express from 'express'
-import winston from 'winston'
-import { NodeSDK } from '@opentelemetry/sdk-node'
-import { context, trace } from '@opentelemetry/api'
+import opentelemetry from '@opentelemetry/api'
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node'
-import { PrometheusExporter } from '@opentelemetry/exporter-prometheus'
+import { NodeTracerProvider } from '@opentelemetry/sdk-trace-node'
+import { BatchSpanProcessor } from '@opentelemetry/sdk-trace-base'
 import { ZipkinExporter } from '@opentelemetry/exporter-zipkin'
-import { HttpInstrumentation } from '@opentelemetry/instrumentation-http'
-import { ExpressInstrumentation } from '@opentelemetry/instrumentation-express'
+import { registerInstrumentations } from '@opentelemetry/instrumentation'
+import promClient from 'prom-client'
 
-// logger
-const logger = winston.createLogger({
-  level: 'debug',
-  format: winston.format.json(),
-  defaultMeta: { service: process.env.SERVICE_NAME },
-  transports: [
-    new winston.transports.Console({
-      format: winston.format.combine(
-        winston.format.timestamp(),
-        winston.format.json()
-      )
-    })
-  ]
-})
-// start metrics
-const sdk = new NodeSDK({
-  traceExporter: new ZipkinExporter({
-    serviceName: process.env.SERVICE_NAME,
-    url: process.env.ZIPKIN_EXPORTER_URL
-  }),
-  metricReader: new PrometheusExporter({ startServer: true, port: process.env.METRICS_PORT || 9464 }, () => {
-    logger.info({
-      message: 'Prometheus metrics server started on port 9464'
-    })
-  }),
-  instrumentations: [
-    getNodeAutoInstrumentations(),
-    new HttpInstrumentation(),
-    new ExpressInstrumentation()
-  ]
-})
-sdk.start()
-// start express server
-const app = express()
-app.use((req, rex, next) => {
-  logger.info({
-    message: 'request',
-    url: req.url,
-    method: req.method
+const run = async () => {
+  // tracing
+  const tracerProvider = new NodeTracerProvider()
+  tracerProvider.addSpanProcessor(new BatchSpanProcessor(new ZipkinExporter({
+    url: process.env.ZIPKIN_EXPORTER_ENDPOINT,
+    serviceName: process.env.SERVICE_NAME
+  })))
+  tracerProvider.register()
+  registerInstrumentations({
+    instrumentations: [
+      getNodeAutoInstrumentations()
+    ]
   })
-  next()
-})
-app.use(express.json())
-app.use((req, res, next) => {
-  const span = trace.getSpan(context.active())
-  if (span) {
-    const traceId = span.context().traceId
-    res.setHeader('x-trace-id', traceId)
-  }
-  next()
-})
-app.get('/ping', (req, res) => res.send('pong'))
-app.listen(process.env.PORT || 3000)
-logger.info({
-  message: 'Express API server listening...'
-})
-// gracefully shut down the SDK on process exit
-process.on('SIGTERM', () => {
-  sdk.shutdown()
-    .catch((err) => {
-      logger.error({
-        message: 'failed to cleanly shutdown metrics',
-        error: err.toString()
+  // metrics
+  const metricsRegistry = new promClient.Registry();
+  promClient.collectDefaultMetrics({ register: metricsRegistry })
+  // logger
+  const winston = await import('winston')
+  const logger = winston.createLogger({
+    level: 'debug',
+    format: winston.format.json(),
+    defaultMeta: { service: process.env.SERVICE_NAME },
+    transports: [
+      new winston.transports.Console({
+        format: winston.format.combine(
+          winston.format.timestamp(),
+          winston.format.json()
+        )
       })
+    ]
+  })
+  // express
+  const { default: express } = await import('express')
+  const app = express()
+  app.use((_req, res, next) => {
+    const currentSpanContext = opentelemetry.trace.getActiveSpan().spanContext()
+    res.set('x-trace-id', currentSpanContext.traceId)
+    next()
+  })
+  app.use((req, _res, next) => {
+    logger.info({
+      message: 'request',
+      url: req.url,
+      method: req.method
     })
-    .finally(() => process.exit(0))
-})
+    next()
+  })
+  app.use(express.json())
+  app.get('/ping', (_req, res) => res.send('pong'))
+  app.get('/metrics', async (_req, res) => res.send(await metricsRegistry.metrics()))
+  await new Promise(resolve => app.listen(process.env.PORT || 3000, resolve))
+  logger.info({
+    message: 'Express API server listening...'
+  })
+}
+
+run()
