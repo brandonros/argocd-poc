@@ -9,7 +9,7 @@ function kaniko_build_and_push() {
   IMAGE=$3
   DOCKERFILE=$4
   CONTEXT=$5
-  PIPELINE_YAML=$(cat $SCRIPT_DIR/../../yaml/pipelines/kaniko-build-and-push-pipeline.yaml)
+  PIPELINE_YAML=$(cat $SCRIPT_DIR/../../yaml/templates/kaniko-build-and-push-pipeline.yaml)
   PIPELINE_YAML=$(echo "$PIPELINE_YAML" | sed "s#{{GIT_URL}}#$GIT_URL#g")
   PIPELINE_YAML=$(echo "$PIPELINE_YAML" | sed "s#{{IMAGE}}#$IMAGE#g")
   PIPELINE_YAML=$(echo "$PIPELINE_YAML" | sed "s#{{DOCKERFILE}}#$DOCKERFILE#g")

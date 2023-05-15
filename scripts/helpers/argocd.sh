@@ -30,7 +30,7 @@ function sync_argocd_app() {
   EXTERNAL_IP=$1
   ARGOCD_APPLICATION_NAME=$2
   ARGOCD_PASSWORD=$3
-  PIPELINE_YAML=$(cat $SCRIPT_DIR/../../yaml/pipelines/argocd-task-sync-and-wait-pipeline.yaml)
+  PIPELINE_YAML=$(cat $SCRIPT_DIR/../../yaml/templates/argocd-task-sync-and-wait-pipeline.yaml)
   PIPELINE_YAML=$(echo "$PIPELINE_YAML" | sed "s/{{ARGOCD_APPLICATION_NAME}}/$ARGOCD_APPLICATION_NAME/g")
   PIPELINE_YAML=$(echo "$PIPELINE_YAML" | sed "s/{{ARGOCD_PASSWORD}}/$ARGOCD_PASSWORD/g")
   tekton_run_pipeline "$EXTERNAL_IP" "argocd-sync-and-wait-pipeline-run" "$PIPELINE_YAML"
