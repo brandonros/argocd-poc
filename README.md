@@ -34,9 +34,13 @@ cd argocd-poc
 # build internal apps
 ./scripts/build-and-push-app.sh "https://github.com/brandonros/k3s-poc.git" "docker-registry.docker-registry.svc.cluster.local:5000/nodejs-poc-app:latest" "./Dockerfile" "./nodejs-poc-app"
 ./scripts/build-and-push-app.sh "https://github.com/brandonros/k3s-poc.git" "docker-registry.docker-registry.svc.cluster.local:5000/rust-poc-app:latest" "./Dockerfile" "./rust-poc-app"
+./scripts/build-and-push-app.sh "https://github.com/brandonros/k3s-poc.git" "docker-registry.docker-registry.svc.cluster.local:5000/java-poc-app:latest" "./Dockerfile" "./java-poc-app"
+./scripts/build-and-push-app.sh "https://github.com/brandonros/k3s-poc.git" "docker-registry.docker-registry.svc.cluster.local:5000/dotnet-poc-app:latest" "./Dockerfile" "./rust-poc-app"
 # deploy internal apps
 ./scripts/deploy-and-sync-argocd-app.sh "nodejs-poc-app"
 ./scripts/deploy-and-sync-argocd-app.sh "rust-poc-app"
+./scripts/deploy-and-sync-argocd-app.sh "java-poc-app"
+./scripts/deploy-and-sync-argocd-app.sh "dotnet-poc-app"
 # migrate database
 ./scripts/migrate-database.sh
 ```
@@ -58,6 +62,8 @@ sudo kubefwd svc -c /tmp/kubeconfig -n code-server
 # apps
 sudo kubefwd svc -c /tmp/kubeconfig -n nodejs-poc-app
 sudo kubefwd svc -c /tmp/kubeconfig -n rust-poc-app
+sudo kubefwd svc -c /tmp/kubeconfig -n java-poc-app
+sudo kubefwd svc -c /tmp/kubeconfig -n dotnet-poc-app
 ```
 
 ## k3s internal Docker registry HTTP workaround

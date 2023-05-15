@@ -2,6 +2,11 @@ using StackExchange.Redis;
 
 namespace MicroservicePOC.Services
 {
+  public interface IRedisService
+  {
+    Task<string> Get(string key);
+  }
+
   public class RedisService : IRedisService
   {
     private readonly IConnectionMultiplexer _connectionMultiplexer;

@@ -15,4 +15,5 @@ function kaniko_build_and_push() {
   PIPELINE_YAML=$(echo "$PIPELINE_YAML" | sed "s#{{DOCKERFILE}}#$DOCKERFILE#g")
   PIPELINE_YAML=$(echo "$PIPELINE_YAML" | sed "s#{{CONTEXT}}#$CONTEXT#g")
   tekton_run_pipeline "$EXTERNAL_IP" "kaniko-build-and-push-pipeline-run" "$PIPELINE_YAML"
+  get_tekton_pipeline_run_logs "$EXTERNAL_IP" "kaniko-build-and-push-pipeline-run"
 }
