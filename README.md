@@ -29,7 +29,7 @@ cd argocd-poc
 ./scripts/deploy-and-sync-argocd-app.sh "kube-prometheus-stack"
 ./scripts/deploy-and-sync-argocd-app.sh "docker-registry"
 # build internal app
-./scripts/build-and-push-app.sh "https://github.com/brandonros/k3s-poc.git" "docker-registry.docker-registry.svc.cluster.local:5000/nodejs-poc-app:0.0.2" "./Dockerfile" "./nodejs-poc-app"
+./scripts/build-and-push-app.sh "https://github.com/brandonros/k3s-poc.git" "docker-registry.docker-registry.svc.cluster.local:5000/nodejs-poc-app:0.0.3" "./Dockerfile" "./nodejs-poc-app"
 # deploy internal app
 ./scripts/deploy-and-sync-argocd-app.sh "nodejs-poc-app"
 ```
@@ -44,6 +44,7 @@ sudo kubefwd svc -c /tmp/kubeconfig -n monitoring -f metadata.name=kube-promethe
 sudo kubefwd svc -c /tmp/kubeconfig -n jaeger
 sudo kubefwd svc -c /tmp/kubeconfig -n kubernetes-dashboard
 sudo kubefwd svc -c /tmp/kubeconfig -n argocd -f metadata.name=argocd-server
+sudo kubefwd svc -c /tmp/kubeconfig -n nodejs-poc-app
 ```
 
 ## k3s internal Docker registry HTTP workaround

@@ -2,7 +2,7 @@
 
 set -e
 
-SCRIPT_DIR="$(dirname "$0")"
+SCRIPT_DIR=$(dirname "${BASH_SOURCE[0]}")
 . "$SCRIPT_DIR/config.sh"
 . "$SCRIPT_DIR/helpers/digitalocean.sh"
 
