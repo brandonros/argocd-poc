@@ -10,9 +10,4 @@ EXPOSE 8080
 RUN mkdir /app
 COPY --from=build /home/gradle/src/build/libs/*.jar /app/spring-boot-application.jar
 COPY --from=build /home/gradle/src/opentelemetry-javaagent.jar /app/opentelemetry-javaagent.jar
-ENTRYPOINT [
-  "java", 
-  "-javaagent:/app/opentelemetry-javaagent.jar",
-  "-Dserver.port=3000", 
-  "-jar", "/app/spring-boot-application.jar"
-]
+ENTRYPOINT ["java", "-javaagent:/app/opentelemetry-javaagent.jar", "-Dserver.port=3000", "-jar", "/app/spring-boot-application.jar"]
