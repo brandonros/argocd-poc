@@ -11,12 +11,12 @@ FROM chef AS builder
 WORKDIR /app
 # hydrate
 COPY --from=planner /app/recipe.json recipe.json
-RUN --mount=type=cache,target=/usr/local/cargo/registry cargo chef cook --recipe-path recipe.json
+RUN cargo chef cook --recipe-path recipe.json
 # build
 COPY src/ src/
 COPY Cargo.lock .
 COPY Cargo.toml .
-RUN --mount=type=cache,target=/usr/local/cargo/registry cargo build
+RUN cargo build
 # runtime
 FROM debian:stable-slim AS runtime
 # copy app from builder

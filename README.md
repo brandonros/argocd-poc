@@ -30,10 +30,12 @@ cd argocd-poc
 ./scripts/deploy-and-sync-argocd-app.sh "kube-prometheus-stack"
 ./scripts/deploy-and-sync-argocd-app.sh "docker-registry"
 ./scripts/deploy-and-sync-argocd-app.sh "windmill"
-# build internal app
+# build internal apps
 ./scripts/build-and-push-app.sh "https://github.com/brandonros/k3s-poc.git" "docker-registry.docker-registry.svc.cluster.local:5000/nodejs-poc-app:latest" "./Dockerfile" "./nodejs-poc-app"
-# deploy internal app
+./scripts/build-and-push-app.sh "https://github.com/brandonros/k3s-poc.git" "docker-registry.docker-registry.svc.cluster.local:5000/rust-poc-app:latest" "./Dockerfile" "./rust-poc-app"
+# deploy internal apps
 ./scripts/deploy-and-sync-argocd-app.sh "nodejs-poc-app"
+./scripts/deploy-and-sync-argocd-app.sh "rust-poc-app"
 ```
 
 ## Tunneling
