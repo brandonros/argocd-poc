@@ -1,21 +1,21 @@
 kind: Namespace
 apiVersion: v1
 metadata:
-  name: java-poc-app
+  name: dotnet-poc-app
   labels:
-    name: java-poc-app
+    name: dotnet-poc-app
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: AppProject
 metadata:
-  name: java-poc-app
+  name: dotnet-poc-app
   namespace: argocd
 spec:
   clusterResourceWhitelist:
   - group: '*'
     kind: '*'
   destinations:
-  - namespace: java-poc-app
+  - namespace: dotnet-poc-app
     server: https://kubernetes.default.svc
   orphanedResources:
     warn: false
@@ -25,13 +25,13 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: java-poc-app
+  name: dotnet-poc-app
   namespace: argocd
 spec:
   destination:
     server: https://kubernetes.default.svc
-    namespace: java-poc-app
-  project: java-poc-app
+    namespace: dotnet-poc-app
+  project: dotnet-poc-app
   revisionHistoryLimit: 1
   source:
     repoURL: https://github.com/brandonros/k3s-poc.git
@@ -39,13 +39,13 @@ spec:
     path: ./helm/
     helm:
       values: |
-        nameOverride: java-poc-app
+        nameOverride: dotnet-poc-app
         image:
           repository: docker-registry:5000 # weird workaround for external vs internal k8s dns
-          tag: java-poc-app:latest
+          tag: dotnet-poc-app:latest
         env:
-          OTEL_TRACES_EXPORTER: zipkin
-          OTEL_EXPORTER_ZIPKIN_ENDPOINT: http://jaeger-jaeger-all-in-one.jaeger.svc:9411/api/v2/spans
-          OTEL_METRICS_EXPORTER: none # TODO
-          OTEL_RESOURCE_ATTRIBUTES: service.name=java-poc-app
-          PORT: 3000 # not actually used
+          SERVICE_NAME: dotnet-poc-app
+          ZIPKIN_EXPORTER_ENDPOINT: http://jaeger-jaeger-all-in-one.jaeger.svc:9411/api/v2/spans
+          PORT: 3000
+          ASPNETCORE_ENVIRONMENT: Development
+          REDIS_CONNECTION_STRING: TODO

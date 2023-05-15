@@ -35,10 +35,10 @@ builder.Services.AddOpenTelemetry()
     })
     .WithTracing(provider =>
     {
-        var appName = Environment.GetEnvironmentVariable("APP_NAME");
+        var serviceName = Environment.GetEnvironmentVariable("SERVICE_NAME");
         provider
-            .AddSource(appName)
-            .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(appName))
+            .AddSource(serviceName)
+            .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(serviceName))
             .AddAspNetCoreInstrumentation()
             .AddHttpClientInstrumentation()
             .AddRedisInstrumentation()

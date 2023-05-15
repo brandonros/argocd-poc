@@ -36,9 +36,10 @@ spec:
   source:
     repoURL: https://github.com/brandonros/k3s-poc.git
     targetRevision: master
-    path: ./nodejs-poc-app/helm/
+    path: ./helm/
     helm:
       values: |
+        nameOverride: nodejs-poc-app
         image:
           repository: docker-registry:5000 # weird workaround for external vs internal k8s dns
           tag: nodejs-poc-app:latest
