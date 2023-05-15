@@ -1,52 +1,44 @@
 apiVersion: tekton.dev/v1beta1
-kind: Pipeline
-metadata:
-  name: kaniko-build-and-push-pipeline
-  namespace: tekton
-spec:
-  workspaces:
-  - name: shared-workspace
-  tasks:
-  - name: git-clone
-    taskRef:
-      name: git-clone # from kubectl apply -f https://raw.githubusercontent.com/tektoncd/catalog/main/task/git-clone/0.9/git-clone.yaml
-    params:
-      - name: url
-        value: {{GIT_URL}}
-    workspaces:
-    - name: output # dictated by task library
-      workspace: shared-workspace
-  - name: kaniko-build-and-push-task
-    taskRef:
-      name: kaniko # from https://raw.githubusercontent.com/tektoncd/catalog/main/task/kaniko/0.6/kaniko.yaml
-    params:
-      - name: IMAGE
-        value: {{IMAGE}}
-      - name: DOCKERFILE
-        value: {{DOCKERFILE}}
-      - name: CONTEXT
-        value: {{CONTEXT}}
-    workspaces:
-    - name: source # dictated by task library
-      workspace: shared-workspace
-    runAfter:
-    - git-clone
----
-apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
   name: kaniko-build-and-push-pipeline-run
   namespace: tekton
 spec:
-  pipelineRef:
-    name: kaniko-build-and-push-pipeline
   workspaces:
-  - name: shared-workspace
-    volumeClaimTemplate:
-      spec:
-        storageClassName: local-path # dictated by k3s?
-        accessModes:
-          - ReadWriteOnce
-        resources:
-          requests:
-            storage: 1Gi
+    - name: shared-workspace
+      volumeClaimTemplate:
+        spec:
+          storageClassName: local-path # dictated by k3s?
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 1Gi
+  pipelineSpec:
+    workspaces:
+      - name: shared-workspace
+    tasks:
+    - name: git-clone
+      taskRef:
+        name: git-clone # from kubectl apply -f https://raw.githubusercontent.com/tektoncd/catalog/main/task/git-clone/0.9/git-clone.yaml
+      params:
+        - name: url
+          value: {{GIT_URL}}
+      workspaces:
+      - name: output # dictated by task library
+        workspace: shared-workspace
+    - name: kaniko-build-and-push-task
+      taskRef:
+        name: kaniko # from https://raw.githubusercontent.com/tektoncd/catalog/main/task/kaniko/0.6/kaniko.yaml
+      params:
+        - name: IMAGE
+          value: {{IMAGE}}
+        - name: DOCKERFILE
+          value: {{DOCKERFILE}}
+        - name: CONTEXT
+          value: {{CONTEXT}}
+      workspaces:
+      - name: source # dictated by task library
+        workspace: shared-workspace
+      runAfter:
+      - git-clone

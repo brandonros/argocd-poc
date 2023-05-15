@@ -36,6 +36,8 @@ cd argocd-poc
 # deploy internal apps
 ./scripts/deploy-and-sync-argocd-app.sh "nodejs-poc-app"
 ./scripts/deploy-and-sync-argocd-app.sh "rust-poc-app"
+# migrate database
+./scripts/migrate-database.sh
 ```
 
 ## Tunneling
@@ -51,6 +53,7 @@ sudo kubefwd svc -c /tmp/kubeconfig -n postgresql
 sudo kubefwd svc -c /tmp/kubeconfig -n windmill
 sudo kubefwd svc -c /tmp/kubeconfig -n argocd -f metadata.name=argocd-server
 sudo kubefwd svc -c /tmp/kubeconfig -n nodejs-poc-app
+sudo kubefwd svc -c /tmp/kubeconfig -n rust-poc-app
 ```
 
 ## k3s internal Docker registry HTTP workaround

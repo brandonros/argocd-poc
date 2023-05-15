@@ -16,26 +16,18 @@ stringData:
   ARGOCD_PASSWORD: {{ARGOCD_PASSWORD}}
 ---
 apiVersion: tekton.dev/v1beta1
-kind: Pipeline
-metadata:
-  name: argocd-sync-and-wait-pipeline
-  namespace: tekton
-spec:
-  tasks:
-    - name: argocd-sync-and-wait-task
-      taskRef:
-        name: argocd-task-sync-and-wait # from https://raw.githubusercontent.com/tektoncd/catalog/main/task/argocd-task-sync-and-wait/0.2/argocd-task-sync-and-wait.yaml
-      params:
-        - name: argocd-version
-          value: v2.6.7
-        - name: application-name
-          value: {{ARGOCD_APPLICATION_NAME}}
----
-apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
   name: argocd-sync-and-wait-pipeline-run
   namespace: tekton
 spec:
-  pipelineRef:
-    name: argocd-sync-and-wait-pipeline
+  pipelineSpec:
+    tasks:
+      - name: argocd-sync-and-wait-task
+        taskRef:
+          name: argocd-task-sync-and-wait # from https://raw.githubusercontent.com/tektoncd/catalog/main/task/argocd-task-sync-and-wait/0.2/argocd-task-sync-and-wait.yaml
+        params:
+          - name: argocd-version
+            value: v2.6.7
+          - name: application-name
+            value: {{ARGOCD_APPLICATION_NAME}}
