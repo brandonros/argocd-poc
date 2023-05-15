@@ -1,0 +1,15 @@
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  name: psql-migrate-database-pipeline-run
+  namespace: tekton
+spec:
+  pipelineSpec:
+    tasks:
+      - name: task
+        taskSpec:
+          steps:
+            - name: step
+              image: governmentpaas/psql
+              script: |
+                echo 'CREATE DATABASE windmill' | psql postgres://postgres:GmDZGeoTxb@postgresql.postgresql.svc/

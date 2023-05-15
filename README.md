@@ -26,10 +26,12 @@ cd argocd-poc
 ./scripts/deploy-and-sync-argocd-app.sh "jaeger"
 ./scripts/deploy-and-sync-argocd-app.sh "loki-stack"
 ./scripts/deploy-and-sync-argocd-app.sh "redis"
+./scripts/deploy-and-sync-argocd-app.sh "postgresql"
 ./scripts/deploy-and-sync-argocd-app.sh "kube-prometheus-stack"
 ./scripts/deploy-and-sync-argocd-app.sh "docker-registry"
+./scripts/deploy-and-sync-argocd-app.sh "windmill"
 # build internal app
-./scripts/build-and-push-app.sh "https://github.com/brandonros/k3s-poc.git" "docker-registry.docker-registry.svc.cluster.local:5000/nodejs-poc-app:0.0.5" "./Dockerfile" "./nodejs-poc-app"
+./scripts/build-and-push-app.sh "https://github.com/brandonros/k3s-poc.git" "docker-registry.docker-registry.svc.cluster.local:5000/nodejs-poc-app:latest" "./Dockerfile" "./nodejs-poc-app"
 # deploy internal app
 ./scripts/deploy-and-sync-argocd-app.sh "nodejs-poc-app"
 ```
@@ -43,6 +45,8 @@ brew install autossh
 sudo kubefwd svc -c /tmp/kubeconfig -n monitoring -f metadata.name=kube-prometheus-stack-grafana
 sudo kubefwd svc -c /tmp/kubeconfig -n jaeger
 sudo kubefwd svc -c /tmp/kubeconfig -n kubernetes-dashboard
+sudo kubefwd svc -c /tmp/kubeconfig -n postgresql
+sudo kubefwd svc -c /tmp/kubeconfig -n windmill
 sudo kubefwd svc -c /tmp/kubeconfig -n argocd -f metadata.name=argocd-server
 sudo kubefwd svc -c /tmp/kubeconfig -n nodejs-poc-app
 ```

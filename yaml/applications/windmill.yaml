@@ -1,21 +1,21 @@
 kind: Namespace
 apiVersion: v1
 metadata:
-  name: redis
+  name: windmill
   labels:
-    name: redis
+    name: windmill
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: AppProject
 metadata:
-  name: redis
+  name: windmill
   namespace: argocd
 spec:
   clusterResourceWhitelist:
   - group: '*'
     kind: '*'
   destinations:
-  - namespace: redis
+  - namespace: windmill
     server: https://kubernetes.default.svc
   orphanedResources:
     warn: false
@@ -25,21 +25,23 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: redis
+  name: windmill
   namespace: argocd
 spec:
   destination:
     server: https://kubernetes.default.svc
-    namespace: redis
-  project: redis
+    namespace: windmill
+  project: windmill
   source:
-    repoURL: https://github.com/bitnami/charts.git
+    repoURL: https://github.com/windmill-labs/windmill-helm-charts.git
     targetRevision: main
-    path: ./bitnami/redis
+    path: ./charts/windmill
     helm:
       values: |
-        architecture: standalone
-        auth:
+        windmill:
+          appReplicas: 1
+          workerReplicas: 1
+          lspReplicas: 1
+          databaseUrl: postgres://postgres:GmDZGeoTxb@postgresql.postgresql.svc/windmill?sslmode=disable
+        postgresql:
           enabled: false
-        replica:
-          replicaCount: 0

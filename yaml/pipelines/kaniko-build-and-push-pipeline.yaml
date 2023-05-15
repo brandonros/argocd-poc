@@ -35,7 +35,7 @@ spec:
 apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
-  name: kaniko-build-and-push-pipelinerun
+  name: kaniko-build-and-push-pipeline-run
   namespace: tekton
 spec:
   pipelineRef:

@@ -1,21 +1,21 @@
 kind: Namespace
 apiVersion: v1
 metadata:
-  name: redis
+  name: postgresql
   labels:
-    name: redis
+    name: postgresql
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: AppProject
 metadata:
-  name: redis
+  name: postgresql
   namespace: argocd
 spec:
   clusterResourceWhitelist:
   - group: '*'
     kind: '*'
   destinations:
-  - namespace: redis
+  - namespace: postgresql
     server: https://kubernetes.default.svc
   orphanedResources:
     warn: false
@@ -25,21 +25,14 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: redis
+  name: postgresql
   namespace: argocd
 spec:
   destination:
     server: https://kubernetes.default.svc
-    namespace: redis
-  project: redis
+    namespace: postgresql
+  project: postgresql
   source:
     repoURL: https://github.com/bitnami/charts.git
     targetRevision: main
-    path: ./bitnami/redis
-    helm:
-      values: |
-        architecture: standalone
-        auth:
-          enabled: false
-        replica:
-          replicaCount: 0
+    path: ./bitnami/postgresql

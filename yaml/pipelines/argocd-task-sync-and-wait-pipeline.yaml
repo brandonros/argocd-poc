@@ -34,7 +34,7 @@ spec:
 apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
-  name: argocd-sync-and-wait-pipelinerun
+  name: argocd-sync-and-wait-pipeline-run
   namespace: tekton
 spec:
   pipelineRef:
