@@ -24,17 +24,3 @@ function sync_argocd_app() {
   tekton_run_pipeline "$EXTERNAL_IP" "argocd-sync-and-wait-pipeline-run" "$PIPELINE_YAML"
   get_tekton_pipeline_run_logs "$EXTERNAL_IP" "argocd-sync-and-wait-pipeline-run"
 }
-
-function deploy_and_sync_argocd_app() {
-  EXTERNAL_IP=$1
-  ARGOCD_APPLICATION_NAME=$2
-  # get argocd password
-  echo "getting argocd password"
-  ARGOCD_PASSWORD=$(get_argocd_password "$EXTERNAL_IP")
-  # droplet deploy argocd app
-  echo "deploying argocd app"
-  deploy_argocd_app "$EXTERNAL_IP" "$ARGOCD_APPLICATION_NAME"
-  # droplet pipeline run argocd sync + wait
-  echo "deploying argocd sync + wait pipeline run + waiting"
-  sync_argocd_app "$EXTERNAL_IP" "$ARGOCD_APPLICATION_NAME" "$ARGOCD_PASSWORD"
-}

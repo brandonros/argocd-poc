@@ -24,7 +24,7 @@ then
   echo "droplet does not already exist, creating..."
   digitalocean_create_droplet "$DROPLET_NAME" "$DROPLET_SIZE" "$DROPLET_REGION" "$DROPLET_IMAGE" "$SSH_KEY_ID"
   echo "sleeping..." # TODO: poll status instead?
-  sleep 30
+  sleep 60
   DROPLET_ID=$(digitalocean_get_droplet_id_by_name "$DROPLET_NAME")
 fi
 echo "DROPLET_ID = $DROPLET_ID"

@@ -15,6 +15,11 @@ then
   echo "failed to get EXTERNAL_IP"
   exit 1
 fi
+# get argocd password
+echo "getting argocd password"
+ARGOCD_PASSWORD=$(get_argocd_password "$EXTERNAL_IP")
+# droplet pipeline run argocd sync + wait
+echo "deploying argocd sync + wait pipeline run + waiting"
 # sync
 ARGOCD_APPLICATION_NAME=$1
-sync_argocd_app "$EXTERNAL_IP" "$ARGOCD_APPLICATION_NAME"
+sync_argocd_app "$EXTERNAL_IP" "$ARGOCD_APPLICATION_NAME" "$ARGOCD_PASSWORD"

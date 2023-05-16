@@ -32,9 +32,9 @@ cd k3s-poc
 ./scripts/kubectl-apply.sh "./yaml/applications/postgresql.yaml" && ./scripts/run-argocd-sync-and-wait-pipeline.sh "postgresql"
 ./scripts/kubectl-apply.sh "./yaml/applications/kube-prometheus-stack.yaml" && ./scripts/run-argocd-sync-and-wait-pipeline.sh "kube-prometheus-stack"
 ./scripts/kubectl-apply.sh "./yaml/applications/docker-registry.yaml" && ./scripts/run-argocd-sync-and-wait-pipeline.sh "docker-registry"
-./scripts/kubectl-apply.sh "./yaml/applications/windmill.yaml" && ./scripts/run-argocd-sync-and-wait-pipeline.sh "windmill"
 ./scripts/kubectl-apply.sh "./yaml/applications/code-server.yaml" && ./scripts/run-argocd-sync-and-wait-pipeline.sh "code-server"
-./scripts/kubectl-apply.sh "./yaml/applications/temporal.yaml" && ./scripts/run-argocd-sync-and-wait-pipeline.sh "temporal"
+./scripts/kubectl-apply.sh "./yaml/applications/windmill.yaml" && ./scripts/run-argocd-sync-and-wait-pipeline.sh "windmill" # manually set database password + migrate databse creating database
+./scripts/kubectl-apply.sh "./yaml/applications/temporal.yaml" && ./scripts/run-argocd-sync-and-wait-pipeline.sh "temporal" # manually set database password + migrate databse creating database
 # build internal apps
 ./scripts/run-kaniko-build-and-push-pipeline.sh "https://github.com/brandonros/k3s-poc.git" "docker-registry.docker-registry.svc.cluster.local:5000/nodejs-poc-app:latest" "./Dockerfile" "./apps/nodejs-poc-app"
 ./scripts/run-kaniko-build-and-push-pipeline.sh "https://github.com/brandonros/k3s-poc.git" "docker-registry.docker-registry.svc.cluster.local:5000/rust-poc-app:latest" "./Dockerfile" "./apps/rust-poc-app"
@@ -75,7 +75,7 @@ sudo kubefwd svc -c /tmp/kubeconfig -n dotnet-poc-app
 ```yaml
 # export KUBECONFIG="/home/debian/.kube/config" 
 # DOCKER_REGISTRY_IP=$(kubectl -n docker-registry get service/docker-registry -o=jsonpath='{.spec.clusterIP}')
-# sudo echo "10.43.121.9 docker-registry" >> /etc/hosts
+# sudo echo "$DOCKER_REGISTRY_IP docker-registry" >> /etc/hosts
 # sudo nano /etc/rancher/k3s/registries.yaml
 mirrors:
   "docker-registry:5000":
