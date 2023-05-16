@@ -23,28 +23,35 @@ git clone https://github.com/brandonros/k3s-poc.git
 cd k3s-poc
 # run from repo directory
 ./scripts/provision-droplet.sh
+# deploy docker registry
+cat ./yaml/applications/docker-registry.yaml | ./scripts/kubectl-apply.sh && ./scripts/run-argocd-sync-and-wait-pipeline.sh "docker-registry"
+# configure k3s to use newly deployed local docker-registry
+./scripts/configure-k3s.sh
+# deploy + migrate database
+cat ./yaml/applications/postgresql.yaml | ./scripts/kubectl-apply.sh && ./scripts/run-argocd-sync-and-wait-pipeline.sh "postgresql"
+./scripts/run-psql-migration-database-pipeline.sh "CREATE DATABASE windmill"
+./scripts/run-psql-migration-database-pipeline.sh "CREATE DATABASE temporal"
 # deploy third-party infrastructure
-./scripts/kubectl-apply.sh "./yaml/applications/kubernetes-dashboard.yaml" && ./scripts/run-argocd-sync-and-wait-pipeline.sh "kubernetes-dashboard"
-./scripts/kubectl-apply.sh "./yaml/applications/jaeger.yaml" && ./scripts/run-argocd-sync-and-wait-pipeline.sh "jaeger"
-./scripts/kubectl-apply.sh "./yaml/applications/loki-stack.yaml" && ./scripts/run-argocd-sync-and-wait-pipeline.sh "loki-stack"
-./scripts/kubectl-apply.sh "./yaml/applications/redis.yaml" && ./scripts/run-argocd-sync-and-wait-pipeline.sh "redis"
-./scripts/kubectl-apply.sh "./yaml/applications/rabbitmq.yaml" && ./scripts/run-argocd-sync-and-wait-pipeline.sh "rabbitmq"
-./scripts/kubectl-apply.sh "./yaml/applications/postgresql.yaml" && ./scripts/run-argocd-sync-and-wait-pipeline.sh "postgresql"
-./scripts/kubectl-apply.sh "./yaml/applications/kube-prometheus-stack.yaml" && ./scripts/run-argocd-sync-and-wait-pipeline.sh "kube-prometheus-stack"
-./scripts/kubectl-apply.sh "./yaml/applications/docker-registry.yaml" && ./scripts/run-argocd-sync-and-wait-pipeline.sh "docker-registry"
-./scripts/kubectl-apply.sh "./yaml/applications/code-server.yaml" && ./scripts/run-argocd-sync-and-wait-pipeline.sh "code-server"
-./scripts/kubectl-apply.sh "./yaml/applications/windmill.yaml" && ./scripts/run-argocd-sync-and-wait-pipeline.sh "windmill" # manually set database password + migrate databse creating database
-./scripts/kubectl-apply.sh "./yaml/applications/temporal.yaml" && ./scripts/run-argocd-sync-and-wait-pipeline.sh "temporal" # manually set database password + migrate databse creating database
+cat ./yaml/applications/kubernetes-dashboard.yaml | ./scripts/kubectl-apply.sh && ./scripts/run-argocd-sync-and-wait-pipeline.sh "kubernetes-dashboard"
+cat ./yaml/applications/jaeger.yaml | ./scripts/kubectl-apply.sh && ./scripts/run-argocd-sync-and-wait-pipeline.sh "jaeger"
+cat ./yaml/applications/loki-stack.yaml | ./scripts/kubectl-apply.sh && ./scripts/run-argocd-sync-and-wait-pipeline.sh "loki-stack"
+cat ./yaml/applications/redis.yaml | ./scripts/kubectl-apply.sh && ./scripts/run-argocd-sync-and-wait-pipeline.sh "redis"
+cat ./yaml/applications/rabbitmq.yaml | ./scripts/kubectl-apply.sh && ./scripts/run-argocd-sync-and-wait-pipeline.sh "rabbitmq"
+cat ./yaml/applications/kube-prometheus-stack.yaml | ./scripts/kubectl-apply.sh && ./scripts/run-argocd-sync-and-wait-pipeline.sh "kube-prometheus-stack"
+cat ./yaml/applications/code-server.yaml | ./scripts/kubectl-apply.sh && ./scripts/run-argocd-sync-and-wait-pipeline.sh "code-server"
+POSTGRES_PASSWORD=$(./scripts/get-postgresql-password.sh)
+cat ./yaml/applications/windmill.yaml | sed "s/{{POSTGRES_PASSWORD}}/$POSTGRES_PASSWORD/g" | ./scripts/kubectl-apply.sh && ./scripts/run-argocd-sync-and-wait-pipeline.sh "windmill" 
+cat ./yaml/applications/temporal.yaml | sed "s/{{POSTGRES_PASSWORD}}/$POSTGRES_PASSWORD/g" | ./scripts/kubectl-apply.sh && ./scripts/run-argocd-sync-and-wait-pipeline.sh "temporal" 
 # build internal apps
 ./scripts/run-kaniko-build-and-push-pipeline.sh "https://github.com/brandonros/k3s-poc.git" "docker-registry.docker-registry.svc.cluster.local:5000/nodejs-poc-app:latest" "./Dockerfile" "./apps/nodejs-poc-app"
 ./scripts/run-kaniko-build-and-push-pipeline.sh "https://github.com/brandonros/k3s-poc.git" "docker-registry.docker-registry.svc.cluster.local:5000/rust-poc-app:latest" "./Dockerfile" "./apps/rust-poc-app"
 ./scripts/run-kaniko-build-and-push-pipeline.sh "https://github.com/brandonros/k3s-poc.git" "docker-registry.docker-registry.svc.cluster.local:5000/java-poc-app:latest" "./Dockerfile" "./apps/java-poc-app"
 ./scripts/run-kaniko-build-and-push-pipeline.sh "https://github.com/brandonros/k3s-poc.git" "docker-registry.docker-registry.svc.cluster.local:5000/dotnet-poc-app:latest" "./Dockerfile" "./apps/rust-poc-app"
 # deploy internal apps
-./scripts/kubectl-apply.sh "./yaml/applications/nodejs-poc-app.yaml" && ./scripts/run-argocd-sync-and-wait-pipeline.sh "nodejs-poc-app"
-./scripts/kubectl-apply.sh "./yaml/applications/rust-poc-app.yaml" && ./scripts/run-argocd-sync-and-wait-pipeline.sh "rust-poc-app"
-./scripts/kubectl-apply.sh "./yaml/applications/java-poc-app.yaml" && ./scripts/run-argocd-sync-and-wait-pipeline.sh "java-poc-app"
-./scripts/kubectl-apply.sh "./yaml/applications/dotnet-poc-app.yaml" && ./scripts/run-argocd-sync-and-wait-pipeline.sh "dotnet-poc-app"
+cat ./yaml/applications/nodejs-poc-app.yaml | ./scripts/kubectl-apply.sh && ./scripts/run-argocd-sync-and-wait-pipeline.sh "nodejs-poc-app"
+cat ./yaml/applications/rust-poc-app.yaml | ./scripts/kubectl-apply.sh && ./scripts/run-argocd-sync-and-wait-pipeline.sh "rust-poc-app"
+cat ./yaml/applications/java-poc-app.yaml | ./scripts/kubectl-apply.sh && ./scripts/run-argocd-sync-and-wait-pipeline.sh "java-poc-app"
+cat ./yaml/applications/dotnet-poc-app.yaml | ./scripts/kubectl-apply.sh && ./scripts/run-argocd-sync-and-wait-pipeline.sh "dotnet-poc-app"
 # migrate database
 ./scripts/run-psql-migration-database-pipeline.sh
 ```
@@ -61,6 +68,7 @@ sudo kubefwd svc -c /tmp/kubeconfig -n jaeger
 sudo kubefwd svc -c /tmp/kubeconfig -n kubernetes-dashboard
 sudo kubefwd svc -c /tmp/kubeconfig -n postgresql
 sudo kubefwd svc -c /tmp/kubeconfig -n windmill
+sudo kubefwd svc -c /tmp/kubeconfig -n temporal -f metadata.name=temporal-web
 sudo kubefwd svc -c /tmp/kubeconfig -n argocd -f metadata.name=argocd-server
 sudo kubefwd svc -c /tmp/kubeconfig -n code-server
 # apps

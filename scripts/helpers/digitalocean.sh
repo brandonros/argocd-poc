@@ -3,6 +3,7 @@
 function digitalocean_get_ssh_key_id_by_name() {
   NAME=$1
   SSH_KEYS=$(curl --fail \
+    --silent \
     -X GET \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer $DIGITALOCEAN_TOKEN" \
@@ -19,6 +20,7 @@ function digitalocean_get_ssh_key_id_by_name() {
 function digitalocean_get_droplet_id_by_name() {
   NAME=$1
   DROPLETS=$(curl --fail \
+    --silent \
     -X GET \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer $DIGITALOCEAN_TOKEN" \
@@ -35,6 +37,7 @@ function digitalocean_get_droplet_id_by_name() {
 function digitalocean_get_droplet_external_ip_by_name() {
   NAME=$1
   DROPLETS=$(curl --fail \
+    --silent \
     -X GET \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer $DIGITALOCEAN_TOKEN" \
@@ -59,6 +62,7 @@ function digitalocean_create_ssh_key() {
 EOF
 )
   curl --fail \
+    --silent \
     -X POST \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer $DIGITALOCEAN_TOKEN" \
@@ -88,6 +92,7 @@ function digitalocean_create_droplet() {
 EOF
 )
   curl --fail \
+    --silent \
     -X POST \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer $DIGITALOCEAN_TOKEN" \

@@ -14,9 +14,9 @@ then
   echo "failed to get EXTERNAL_IP"
   exit 1
 fi
+# read from stdin
+YAML=$(cat)
 # apply
-FILENAME=$1
-YAML=$(cat "$FILENAME")
 COMMAND=$(cat <<EOF
   export KUBECONFIG="/home/debian/.kube/config" # TODO: do not hardcode username but can't mix and match variables with heredoc
   echo "$YAML" | kubectl apply -f -

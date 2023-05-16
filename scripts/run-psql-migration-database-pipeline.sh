@@ -5,7 +5,7 @@ set -e
 SCRIPT_DIR=$(dirname "${BASH_SOURCE[0]}")
 . "$SCRIPT_DIR/config.sh"
 . "$SCRIPT_DIR/helpers/digitalocean.sh"
-. "$SCRIPT_DIR/helpers/tekton.sh"
+. "$SCRIPT_DIR/helpers/postgres.sh"
 
 # get droplet external IP
 echo "getting droplet external IP..."
@@ -20,5 +20,5 @@ echo "getting postgres password"
 POSTGRES_PASSWORD=$(get_postgres_password "$EXTERNAL_IP")
 # run pipeline
 POSTGRES_CONNECTION_STRING="postgres://postgres:$POSTGRES_PASSWORD@postgresql.postgresql.svc/"
-QUERY="SELECT 1"
-run_postgres_query "$EXTERNAL_IP" "$POSTGRES_CONNECTION_STRING" "$ENCODED_QUERY"
+QUERY="$1"
+run_postgres_query "$EXTERNAL_IP" "$POSTGRES_CONNECTION_STRING" "$QUERY"

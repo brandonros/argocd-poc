@@ -18,17 +18,20 @@ fi
 COMMAND=$(cat <<'EOF'
 set -e
 export KUBECONFIG="/home/debian/.kube/config"
-DOCKER_REGISTRY_IP=$(kubectl -n docker-registry get service/docker-registry -o=jsonpath='{.spec.clusterIP}')
-echo "$DOCKER_REGISTRY_IP docker-registry" | sudo tee -a /etc/hosts
-YAML=$(cat <<INNER_EOF
-mirrors:
-  "docker-registry:5000":
-    endpoint:
-      - "http://docker-registry:5000"
+if ! grep -q "docker-registry" /etc/hosts
+then
+  DOCKER_REGISTRY_IP=$(kubectl -n docker-registry get service/docker-registry -o=jsonpath='{.spec.clusterIP}')
+  echo "$DOCKER_REGISTRY_IP docker-registry" | sudo tee -a /etc/hosts
+  YAML=$(cat <<INNER_EOF
+  mirrors:
+    "docker-registry:5000":
+      endpoint:
+        - "http://docker-registry:5000"
 INNER_EOF
-)
-echo "$YAML" | sudo tee /etc/rancher/k3s/registries.yaml
-sudo systemctl restart k3s
+  )
+  echo "$YAML" | sudo tee /etc/rancher/k3s/registries.yaml
+  sudo systemctl restart k3s
+fi
 EOF
 )
 ssh -t debian@$EXTERNAL_IP "$COMMAND"

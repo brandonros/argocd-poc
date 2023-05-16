@@ -42,6 +42,6 @@ spec:
           appReplicas: 1
           workerReplicas: 1
           lspReplicas: 1
-          databaseUrl: postgres://postgres:GmDZGeoTxb@postgresql.postgresql.svc/windmill?sslmode=disable # TODO: do not hardcode
+          databaseUrl: postgres://postgres:{{POSTGRES_PASSWORD}}@postgresql.postgresql.svc/windmill?sslmode=disable
         postgresql:
           enabled: false
