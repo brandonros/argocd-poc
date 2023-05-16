@@ -3,18 +3,6 @@
 SCRIPT_DIR=$(dirname "${BASH_SOURCE[0]}")
 . $SCRIPT_DIR/tekton.sh
 
-function deploy_argocd_app() {
-  EXTERNAL_IP=$1
-  ARGOCD_APPLICATION_NAME=$2
-  ARGOCD_APP_YAML=$(cat $SCRIPT_DIR/../../yaml/applications/$ARGOCD_APPLICATION_NAME.yaml)
-  COMMAND=$(cat <<EOF
-    export KUBECONFIG="/home/debian/.kube/config" # TODO: do not hardcode username but can't mix and match variables with heredoc
-    echo "$ARGOCD_APP_YAML" | kubectl apply -f -
-EOF
-  )
-  ssh debian@$EXTERNAL_IP "$COMMAND"
-}
-
 function get_argocd_password() {
   EXTERNAL_IP=$1
   COMMAND=$(cat <<EOF

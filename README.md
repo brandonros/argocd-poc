@@ -18,31 +18,33 @@ source ~/.bash_profile
 
 ```shell
 # clone git repo locally
-git clone https://github.com/brandonros/argocd-poc.git
+git clone https://github.com/brandonros/k3s-poc.git
 # cd into repo folder
-cd argocd-poc
+cd k3s-poc
 # run from repo directory
 ./scripts/provision-droplet.sh
 # deploy third-party infrastructure
-./scripts/run-argocd-sync-and-wait-pipeline.sh "kubernetes-dashboard"
-./scripts/run-argocd-sync-and-wait-pipeline.sh "jaeger"
-./scripts/run-argocd-sync-and-wait-pipeline.sh "loki-stack"
-./scripts/run-argocd-sync-and-wait-pipeline.sh "redis"
-./scripts/run-argocd-sync-and-wait-pipeline.sh "postgresql"
-./scripts/run-argocd-sync-and-wait-pipeline.sh "kube-prometheus-stack"
-./scripts/run-argocd-sync-and-wait-pipeline.sh "docker-registry"
-./scripts/run-argocd-sync-and-wait-pipeline.sh "windmill"
-./scripts/run-argocd-sync-and-wait-pipeline.sh "code-server"
+./scripts/kubectl-apply.sh "./yaml/applications/kubernetes-dashboard.yaml" && ./scripts/run-argocd-sync-and-wait-pipeline.sh "kubernetes-dashboard"
+./scripts/kubectl-apply.sh "./yaml/applications/jaeger.yaml" && ./scripts/run-argocd-sync-and-wait-pipeline.sh "jaeger"
+./scripts/kubectl-apply.sh "./yaml/applications/loki-stack.yaml" && ./scripts/run-argocd-sync-and-wait-pipeline.sh "loki-stack"
+./scripts/kubectl-apply.sh "./yaml/applications/redis.yaml" && ./scripts/run-argocd-sync-and-wait-pipeline.sh "redis"
+./scripts/kubectl-apply.sh "./yaml/applications/rabbitmq.yaml" && ./scripts/run-argocd-sync-and-wait-pipeline.sh "rabbitmq"
+./scripts/kubectl-apply.sh "./yaml/applications/postgresql.yaml" && ./scripts/run-argocd-sync-and-wait-pipeline.sh "postgresql"
+./scripts/kubectl-apply.sh "./yaml/applications/kube-prometheus-stack.yaml" && ./scripts/run-argocd-sync-and-wait-pipeline.sh "kube-prometheus-stack"
+./scripts/kubectl-apply.sh "./yaml/applications/docker-registry.yaml" && ./scripts/run-argocd-sync-and-wait-pipeline.sh "docker-registry"
+./scripts/kubectl-apply.sh "./yaml/applications/windmill.yaml" && ./scripts/run-argocd-sync-and-wait-pipeline.sh "windmill"
+./scripts/kubectl-apply.sh "./yaml/applications/code-server.yaml" && ./scripts/run-argocd-sync-and-wait-pipeline.sh "code-server"
+./scripts/kubectl-apply.sh "./yaml/applications/temporal.yaml" && ./scripts/run-argocd-sync-and-wait-pipeline.sh "temporal"
 # build internal apps
 ./scripts/run-kaniko-build-and-push-pipeline.sh "https://github.com/brandonros/k3s-poc.git" "docker-registry.docker-registry.svc.cluster.local:5000/nodejs-poc-app:latest" "./Dockerfile" "./apps/nodejs-poc-app"
 ./scripts/run-kaniko-build-and-push-pipeline.sh "https://github.com/brandonros/k3s-poc.git" "docker-registry.docker-registry.svc.cluster.local:5000/rust-poc-app:latest" "./Dockerfile" "./apps/rust-poc-app"
 ./scripts/run-kaniko-build-and-push-pipeline.sh "https://github.com/brandonros/k3s-poc.git" "docker-registry.docker-registry.svc.cluster.local:5000/java-poc-app:latest" "./Dockerfile" "./apps/java-poc-app"
 ./scripts/run-kaniko-build-and-push-pipeline.sh "https://github.com/brandonros/k3s-poc.git" "docker-registry.docker-registry.svc.cluster.local:5000/dotnet-poc-app:latest" "./Dockerfile" "./apps/rust-poc-app"
 # deploy internal apps
-./scripts/run-argocd-sync-and-wait-pipeline.sh "nodejs-poc-app"
-./scripts/run-argocd-sync-and-wait-pipeline.sh "rust-poc-app"
-./scripts/run-argocd-sync-and-wait-pipeline.sh "java-poc-app"
-./scripts/run-argocd-sync-and-wait-pipeline.sh "dotnet-poc-app"
+./scripts/kubectl-apply.sh "./yaml/applications/nodejs-poc-app.yaml" && ./scripts/run-argocd-sync-and-wait-pipeline.sh "nodejs-poc-app"
+./scripts/kubectl-apply.sh "./yaml/applications/rust-poc-app.yaml" && ./scripts/run-argocd-sync-and-wait-pipeline.sh "rust-poc-app"
+./scripts/kubectl-apply.sh "./yaml/applications/java-poc-app.yaml" && ./scripts/run-argocd-sync-and-wait-pipeline.sh "java-poc-app"
+./scripts/kubectl-apply.sh "./yaml/applications/dotnet-poc-app.yaml" && ./scripts/run-argocd-sync-and-wait-pipeline.sh "dotnet-poc-app"
 # migrate database
 ./scripts/run-psql-migration-database-pipeline.sh
 ```

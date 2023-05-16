@@ -1,0 +1,80 @@
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: temporal
+  labels:
+    name: temporal
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: temporal
+  namespace: argocd
+spec:
+  clusterResourceWhitelist:
+  - group: '*'
+    kind: '*'
+  destinations:
+  - namespace: temporal
+    server: https://kubernetes.default.svc
+  orphanedResources:
+    warn: false
+  sourceRepos:
+  - '*'
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: temporal
+  namespace: argocd
+spec:
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: temporal
+  project: temporal
+  source:
+    repoURL: https://github.com/temporalio/helm-charts.git
+    targetRevision: master
+    path: .
+    helm:
+      values: |
+        server:
+          replicaCount: 1
+          config:
+            persistence:
+              default:
+                driver: sql
+                sql:
+                  driver: postgres
+                  host: postgresql.postgresql.svc
+                  port: 5432
+                  database: temporal
+                  user: postgres
+                  password: GmDZGeoTxb # TODO: do not hardcode
+                  maxConns: 20
+                  maxConnLifetime: "1h"
+
+              visibility:
+                driver: "sql"
+                sql:
+                  driver: postgres
+                  host: postgresql.postgresql.svc
+                  port: 5432
+                  database: temporal_visibility
+                  user: postgres
+                  password: GmDZGeoTxb # TODO: do not hardcode
+                  maxConns: 20
+                  maxConnLifetime: "1h"
+        cassandra:
+          config:
+            cluster_size: 1
+        prometheus:
+          enabled: false
+        grafana:
+          enabled: false
+        elasticsearch:
+          enabled: false
+        cassandra:
+          enabled: false
+        mysql:
+          enabled: false

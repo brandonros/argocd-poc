@@ -5,7 +5,6 @@ set -e
 SCRIPT_DIR=$(dirname "${BASH_SOURCE[0]}")
 . "$SCRIPT_DIR/config.sh"
 . "$SCRIPT_DIR/helpers/digitalocean.sh"
-. "$SCRIPT_DIR/helpers/argocd.sh"
 
 # get droplet external IP
 echo "getting droplet external IP..."
@@ -15,6 +14,12 @@ then
   echo "failed to get EXTERNAL_IP"
   exit 1
 fi
-# sync
-ARGOCD_APPLICATION_NAME=$1
-sync_argocd_app "$EXTERNAL_IP" "$ARGOCD_APPLICATION_NAME"
+# apply
+FILENAME=$1
+YAML=$(cat "$FILENAME")
+COMMAND=$(cat <<EOF
+  export KUBECONFIG="/home/debian/.kube/config" # TODO: do not hardcode username but can't mix and match variables with heredoc
+  echo "$YAML" | kubectl apply -f -
+EOF
+)
+ssh debian@$EXTERNAL_IP "$COMMAND"

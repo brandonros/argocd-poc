@@ -1,0 +1,38 @@
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: rabbitmq
+  labels:
+    name: rabbitmq
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: rabbitmq
+  namespace: argocd
+spec:
+  clusterResourceWhitelist:
+  - group: '*'
+    kind: '*'
+  destinations:
+  - namespace: rabbitmq
+    server: https://kubernetes.default.svc
+  orphanedResources:
+    warn: false
+  sourceRepos:
+  - '*'
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: rabbitmq
+  namespace: argocd
+spec:
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: rabbitmq
+  project: rabbitmq
+  source:
+    repoURL: https://github.com/bitnami/charts.git
+    targetRevision: main
+    path: ./bitnami/rabbitmq
