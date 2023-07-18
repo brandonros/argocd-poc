@@ -48,4 +48,4 @@ spec:
           ZIPKIN_EXPORTER_ENDPOINT: http://jaeger-jaeger-all-in-one.jaeger.svc:9411/api/v2/spans
           PORT: 3000
           ASPNETCORE_ENVIRONMENT: Development
-          REDIS_CONNECTION_STRING: {{REDIS_CONNECTION_STRING}}
+          REDIS_CONNECTION_STRING: TODO
