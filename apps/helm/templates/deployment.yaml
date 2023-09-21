@@ -42,6 +42,11 @@ spec:
             - name: http
               containerPort: {{ .Values.service.port }}
               protocol: TCP
+            {{- if .Values.service.adminPort }}
+            - name: http-admin
+              containerPort: {{ .Values.service.adminPort }}
+              protocol: TCP
+            {{- end }}
           livenessProbe:
             httpGet:
               path: {{ .Values.service.livenessProbe }}
