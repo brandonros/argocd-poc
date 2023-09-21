@@ -11,6 +11,8 @@ service:
   port: 3000
   livenessProbe: /ping
   readinessProbe: /ping
+  livenessProbePort: http
+  readinessProbePort: http
 serviceAccount:
   create: false
 autoscaling:
