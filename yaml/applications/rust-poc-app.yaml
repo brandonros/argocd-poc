@@ -43,6 +43,7 @@ spec:
         image:
           repository: docker-registry:5000 # weird workaround for external vs internal k8s dns
           tag: rust-poc-app:latest
+          imagePullPolicy: Always
         env:
           SERVICE_NAME: rust-poc-app
           ZIPKIN_EXPORTER_ENDPOINT: http://jaeger-jaeger-all-in-one.jaeger.svc:9411/api/v2/spans

@@ -43,6 +43,7 @@ spec:
         image:
           repository: docker-registry:5000 # weird workaround for external vs internal k8s dns
           tag: java-poc-app:latest
+          imagePullPolicy: Always
         env:
           OTEL_TRACES_EXPORTER: zipkin
           OTEL_EXPORTER_ZIPKIN_ENDPOINT: http://jaeger-jaeger-all-in-one.jaeger.svc:9411/api/v2/spans
