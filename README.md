@@ -22,7 +22,8 @@ git clone https://github.com/brandonros/k3s-poc.git
 # cd into repo folder
 cd k3s-poc
 # run from repo directory
-./scripts/provision-droplet.sh
+./scripts/create-vultr-instance.sh # or ./scripts/create-digitalocean-droplet.sh
+./scripts/provision-k3s.sh
 # deploy docker registry
 cat ./yaml/applications/docker-registry.yaml | ./scripts/kubectl-apply.sh && ./scripts/run-argocd-sync-and-wait-pipeline.sh "docker-registry"
 # configure k3s to use newly deployed local docker-registry
