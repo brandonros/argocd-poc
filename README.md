@@ -1,5 +1,5 @@
 # k3s-poc
-Building + deploying OCI images + dependencies through DigitalOcean + Bash + k3s + ArgoCD + Helm + ArgoCD + Tekton + Kaniko
+Building + deploying OCI images + dependencies through DigitalOcean + Bash + k3s + ArgoCD + Helm + Tekton + Kaniko
 
 ## Pre-requisites
 
