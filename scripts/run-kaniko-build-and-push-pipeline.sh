@@ -5,15 +5,16 @@ set -e
 SCRIPT_DIR="$(dirname "$0")"
 . "$SCRIPT_DIR/config.sh"
 . "$SCRIPT_DIR/helpers/digitalocean.sh"
+. "$SCRIPT_DIR/helpers/vultr.sh"
 . "$SCRIPT_DIR/helpers/kaniko.sh"
 
-# get droplet external IP
-echo "getting droplet external IP..."
-EXTERNAL_IP=$(digitalocean_get_droplet_external_ip_by_name "$DROPLET_NAME")
-if [ "$EXTERNAL_IP" == "null" ]
+# get external IP
+EXTERNAL_IP=""
+if [ "$VPS_PROVIDER" == "vultr" ]
 then
-  echo "failed to get EXTERNAL_IP"
-  exit 1
+  EXTERNAL_IP=$(vultr_get_instance_external_ip_by_label "$INSTANCE_LABEL")
+else
+  EXTERNAL_IP=$(digitalocean_get_droplet_external_ip_by_name "$DROPLET_NAME")
 fi
 # deploy and sync
 GIT_URL=$1

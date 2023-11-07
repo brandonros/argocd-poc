@@ -43,6 +43,7 @@ cat ./yaml/applications/code-server.yaml | ./scripts/kubectl-apply.sh && ./scrip
 POSTGRES_PASSWORD=$(./scripts/get-postgresql-password.sh)
 cat ./yaml/applications/windmill.yaml | sed "s/{{POSTGRES_PASSWORD}}/$POSTGRES_PASSWORD/g" | ./scripts/kubectl-apply.sh && ./scripts/run-argocd-sync-and-wait-pipeline.sh "windmill" 
 cat ./yaml/applications/temporal.yaml | sed "s/{{POSTGRES_PASSWORD}}/$POSTGRES_PASSWORD/g" | ./scripts/kubectl-apply.sh && ./scripts/run-argocd-sync-and-wait-pipeline.sh "temporal" 
+# TODO: execute `tctl --namespace default namespace register` in deployment/temporal-admintools pod
 # build internal apps
 ./scripts/run-kaniko-build-and-push-pipeline.sh "https://github.com/brandonros/k3s-poc.git" "docker-registry.docker-registry.svc.cluster.local:5000/nodejs-poc-app:latest" "./Dockerfile" "./apps/nodejs-poc-app"
 ./scripts/run-kaniko-build-and-push-pipeline.sh "https://github.com/brandonros/k3s-poc.git" "docker-registry.docker-registry.svc.cluster.local:5000/rust-poc-app:latest" "./Dockerfile" "./apps/rust-poc-app"

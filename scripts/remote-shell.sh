@@ -15,11 +15,6 @@ then
 else
   EXTERNAL_IP=$(digitalocean_get_droplet_external_ip_by_name "$DROPLET_NAME")
 fi
-# get password
-COMMAND=$(cat <<EOF
-  export KUBECONFIG="/home/debian/.kube/config"
-  kubectl -n postgresql get secret postgresql -o json | jq -r '.data["postgres-password"]' | base64 --decode
-EOF
-)
-OUTPUT=$(ssh -t -o LogLevel=QUIET debian@$EXTERNAL_IP "$COMMAND")
-echo "$OUTPUT"
+# shell
+echo "opening shell"
+ssh debian@$EXTERNAL_IP

@@ -15,7 +15,6 @@ then
 else
   EXTERNAL_IP=$(digitalocean_get_droplet_external_ip_by_name "$DROPLET_NAME")
 fi
-
 # accept host SSH key
 if ! grep -q "$EXTERNAL_IP" ~/.ssh/known_hosts
 then
@@ -56,6 +55,9 @@ EOF
 )
 ssh root@$EXTERNAL_IP "$COMMAND"
 # TODO: poweroff + powercycle here to force new freshest kernel?
+#ssh root@$EXTERNAL_IP "reboot"
+# sleep
+#sleep 60
 # install k3s if not already installed
 COMMAND=$(cat <<'EOF'
 set -e
@@ -64,7 +66,7 @@ export USERNAME="debian" # TODO: do not hardcode, do sed {{}} templating?
 if ! command -v kubectl &> /dev/null
 then
   # Download and install k3s if kubectl not found
-  curl -sfL https://get.k3s.io | sh -
+  curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION='v1.28.2+k3s1' sh -
 fi
 # write user kubeconfig if not already written
 if [ ! -f "/home/$USERNAME/.kube/config" ]
@@ -77,12 +79,14 @@ fi
 EOF
 )
 ssh -t debian@$EXTERNAL_IP "$COMMAND" # allocate tty for sudo in k3s sh pipe
+# TODO: wait for node ready
+# TODO: wait for coredns ready
 # deploy argocd
 COMMAND=$(cat <<EOF
 set -e
 export KUBECONFIG="/home/debian/.kube/config" # TODO: do not hardcode username but can't mix and match variables with heredoc
 kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
-kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/v2.6.7/manifests/install.yaml
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/v2.9.0/manifests/install.yaml
 kubectl wait deployment -n argocd argocd-server --for condition=Available=True --timeout=90s
 EOF
 )

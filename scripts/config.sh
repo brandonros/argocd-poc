@@ -13,7 +13,7 @@ DROPLET_IMAGE="debian-11-x64"
 # instance
 INSTANCE_LABEL="instance1"
 INSTANCE_REGION="ewr"
-INSTANCE_PLAN="vc2-2c-4gb"
+INSTANCE_PLAN="vc2-4c-8gb"
 INSTANCE_OS_NAME="Debian 12 x64 (bookworm)"
 # user settings
 USERNAME="debian"
