@@ -88,6 +88,14 @@ export KUBECONFIG="/home/debian/.kube/config" # TODO: do not hardcode username b
 kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
 kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/v2.9.0/manifests/install.yaml
 kubectl wait deployment -n argocd argocd-server --for condition=Available=True --timeout=90s
+# patch password to admin
+kubectl -n argocd patch secret argocd-secret \
+  -p '{
+  "stringData": {
+    "admin.password": "$2a$12$ZlAjJr.wa9nedDyAC5RFq.gEn6uSy73Kupp1KQ5DG3y/EVY9YOdiS",
+    "admin.passwordMtime": "'$(date +%FT%T%Z)'"
+  }
+}'
 EOF
 )
 ssh debian@$EXTERNAL_IP "$COMMAND"
