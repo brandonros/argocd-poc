@@ -1,0 +1,16 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: prometheus-ingress-route
+  namespace: prometheus
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`prometheus-192-168-0-105.nip.io`)
+      services:
+        - kind: Service
+          port: 80
+          name: prometheus-server
+          namespace: prometheus
