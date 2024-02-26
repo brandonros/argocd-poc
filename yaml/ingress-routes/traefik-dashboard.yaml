@@ -1,0 +1,16 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: traefik-dashboard-ingress-route
+  namespace: kube-system
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`traefik-dashboard.cluster.local`)
+      services:
+        - kind: Service
+          port: 9000
+          name: traefik-dashboard
+          namespace: kube-system

@@ -34,8 +34,8 @@ spec:
   project: kubernetes-dashboard
   source:
     repoURL: https://github.com/kubernetes/dashboard.git
-    targetRevision: master
-    path: ./charts/helm-chart/kubernetes-dashboard/
+    targetRevision: v2.7.0
+    path: ./aio/deploy/helm-chart/kubernetes-dashboard/
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -43,6 +43,7 @@ metadata:
   name: admin-user
   namespace: kubernetes-dashboard
 ---
+# kubectl -n kubernetes-dashboard create token admin-user
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
