@@ -8,7 +8,7 @@ spec:
     - websecure
   routes:
     - kind: Rule
-      match: Host(`traefik-dashboard.cluster.local`)
+      match: Host(`traefik-dashboard-192-168-0-105.nip.io`)
       services:
         - kind: Service
           port: 9000
