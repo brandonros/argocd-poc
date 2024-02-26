@@ -1,3 +1,11 @@
+apiVersion: traefik.io/v1alpha1
+kind: ServersTransport
+metadata:
+  name: argocd-transport
+  namespace: argocd
+spec:
+  insecureSkipVerify: true
+---
 apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute
 metadata:
@@ -11,6 +19,7 @@ spec:
       match: Host(`argocd.cluster.local`)
       services:
         - kind: Service
-          port: 80
+          port: 443
           name: argocd-server
           namespace: argocd
+          serversTransport: argocd-transport
